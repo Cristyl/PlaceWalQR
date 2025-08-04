@@ -1,8 +1,6 @@
 package com.example.placewalqr
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,25 +14,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.placewalqr.ui.theme.PlaceWalQRTheme
 
-class MainActivity : ComponentActivity() {
+class RegisterActivity : ComponentActivity() {
 
     private lateinit var mainLabel: TextView
     private lateinit var emailField: TextView
     private lateinit var pwdField: TextView
-    private lateinit var loginBtn: Button
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
+        setContentView(R.layout.register_activity)
         mainLabel = findViewById(R.id.main_label)
         emailField = findViewById(R.id.email_field)
         pwdField = findViewById(R.id.pwd_field)
 
-        loginBtn = findViewById(R.id.btnLogin)
-        loginBtn.setOnClickListener {
-            var intent = Intent(this, RegisterActivity::class.java)
-            startActivity(intent)
-        }
     }
     }
