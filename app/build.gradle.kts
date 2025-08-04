@@ -10,8 +10,8 @@ android {
 
     defaultConfig {
         applicationId = "com.example.placewalqr"
-        minSdk = 32
-        targetSdk = 36
+        minSdk = 31
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
