@@ -1,6 +1,7 @@
 package com.example.placewalqr
 
 import android.os.Bundle
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -14,34 +15,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.placewalqr.ui.theme.PlaceWalQRTheme
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var mainLabel: TextView
+    private lateinit var emailField: TextView
+    private lateinit var pwdField: TextView
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            PlaceWalQRTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
-        }
-    }
-}
+        setContentView(R.layout.activity_main)
+        mainLabel = findViewById(R.id.main_label)
+        emailField = findViewById(R.id.email_field)
+        pwdField = findViewById(R.id.pwd_field)
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PlaceWalQRTheme {
-        Greeting("Android")
     }
-}
+    }
