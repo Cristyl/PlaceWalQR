@@ -22,6 +22,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var emailField: TextView
     private lateinit var pwdField: TextView
     private lateinit var loginBtn: Button
+    private lateinit var forgotPwd: TextView
+    private lateinit var registerText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,11 +32,18 @@ class MainActivity : ComponentActivity() {
         mainLabel = findViewById(R.id.main_label)
         emailField = findViewById(R.id.email_field)
         pwdField = findViewById(R.id.pwd_field)
-
+        forgotPwd = findViewById(R.id.forgot_pwd_text)
+        registerText = findViewById(R.id.register_text)
         loginBtn = findViewById(R.id.btnLogin)
-        loginBtn.setOnClickListener {
+
+        forgotPwd.setOnClickListener {
+            //
+        }
+
+        registerText.setOnClickListener {
             var intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
         }
-    }
+
+        }
     }

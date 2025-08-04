@@ -1,49 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:layout_marginTop="32dp"
+    android:layout_marginLeft="8dp"
+    android:layout_marginRight="8dp"
+    android:layout_marginBottom="32dp"
+    >
+    <TableRow>
+        <TextView
+            android:id="@+id/main_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name" />
+    </TableRow>
+    <TableRow>
+        <TextView
+            android:id="@+id/textViewName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Your name: " />
+        <EditText
+            android:id="@+id/name_field"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:contentDescription="Name"
+            android:hint="name"/>
+    </TableRow>
+    <TableRow>
+        <TextView
+            android:id="@+id/textViewSurname"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Your surname: " />
+        <EditText
+            android:id="@+id/surname_field"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:contentDescription="Name"
+            android:hint="surname"/>
+    </TableRow>
 
-    <TextView
-        android:id="@+id/main_label"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="@string/app_name" />
+    <TableRow>
+        <TextView
+            android:id="@+id/textViewNickname"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Your nickname: " />
+        <EditText
+            android:id="@+id/nickname_field"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:contentDescription="Nickname"
+            android:hint="nickname"/>
+    </TableRow>
 
+    <TableRow>
+        <TextView
+            android:id="@+id/textViewEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Your email: " />
+        <EditText
+            android:id="@+id/email_field"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textEmailAddress"
+            android:contentDescription="Email"
+            android:hint="email"/>
+    </TableRow>
 
+    <TableRow>
+        <TextView
+            android:id="@+id/textViewPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Your password: " />
+        <EditText
+            android:id="@+id/pwd_field"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPassword"
+            android:contentDescription="Password"
+            android:hint="password"/>
+    </TableRow>
 
-    <EditText
-        android:id="@+id/email_field"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="textEmailAddress"
-        android:contentDescription="Name"
-        android:hint="name"/>
-
-    <EditText
-        android:id="@+id/pwd_field"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="textPassword" />
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/forgot_pwd" />
+    <TableRow>
+        <TextView
+            android:id="@+id/textViewPasswordConfirm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Your password: " />
+        <EditText
+            android:id="@+id/pwd_confirm_field"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPassword"
+            android:contentDescription="Password confirm"
+            android:hint="confirm password"/>
+    </TableRow>
 
     <Button
         android:id="@+id/btnLogin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/login_btn_str" />
+        android:text="@string/register_btn_str" />
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/register_str" />
-</LinearLayout>
+</TableLayout>

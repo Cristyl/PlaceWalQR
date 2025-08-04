@@ -2,6 +2,8 @@
     <string name="app_name">PlaceWalQR</string>
 
     <string name="login_btn_str">LOGIN</string>
+    <string name="register_btn_str">REGISTER</string>
+
     <string name="forgot_pwd">Forgot your password?</string>
     <string name="register_str">Register</string>
 
