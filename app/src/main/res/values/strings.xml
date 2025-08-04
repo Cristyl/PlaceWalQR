@@ -7,4 +7,8 @@
     <string name="forgot_pwd">Forgot your password?</string>
     <string name="register_str">Register</string>
 
+    <string name="welcome_str">Welcome user</string>
+    <string name="seesights_home">See sights:</string>
+    <string name="points_home">Point scored:</string>
+    <string name="lastplace_home">Last place visited</string>
 </resources>
