@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -11,8 +12,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.OptIn
 import androidx.camera.core.CameraProvider
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
@@ -28,14 +31,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import com.example.placewalqr.ui.theme.PlaceWalQRTheme
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.mlkit.vision.barcode.BarcodeScanner
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.common.InputImage
 import java.io.ByteArrayOutputStream
 import java.sql.Timestamp
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import org.json.JSONObject
 
 class CameraActivity : BaseActivity() {
 
     private lateinit var cameraView: PreviewView
+    private lateinit var placeView: TextView
+
     private lateinit var takeShotBtn: Button
     private lateinit var imageCapture: ImageCapture
 
@@ -56,6 +67,11 @@ class CameraActivity : BaseActivity() {
         setContentView(R.layout.camera_activity)
 
         cameraView = findViewById(R.id.camera_view)
+        cameraView.visibility = View.VISIBLE
+
+        placeView = findViewById(R.id.place_view)
+        placeView.visibility = View.GONE
+
         takeShotBtn = findViewById(R.id.camera_btn)
 
         if(allPermissionsGranted()){
@@ -110,31 +126,8 @@ class CameraActivity : BaseActivity() {
     }
 
     private fun takePhotoOnClick() {
-        // vecchia implementazione, NON TOCCARE IN CASO DI PROBLEMI CON LA NUOVA!!!
-//        // zona memoria dove salvare la foto come array di byte
-//        outputStream = ByteArrayOutputStream()
-//        // dove salvare l'immagine che viene scattata
-//        val outputFileOptions = ImageCapture.OutputFileOptions.Builder(outputStream).build()
-//
-//        // impostazioni salvataggio immagine,
-//        // executor invocato al momento dello scatto,
-//        // implementazione dell'interfaccia per il salvataggio dell'immagine ed eventuali errori
-//        imageCapture.takePicture(
-//            outputFileOptions,
-//            ContextCompat.getMainExecutor(this),
-//            object : ImageCapture.OnImageSavedCallback{
-//                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-//                    val imageBytes = outputStream.toByteArray()
-//                    Toast.makeText(baseContext, "Photo capture success, executing analysis...", Toast.LENGTH_SHORT).show()
-//                    processImage()
-//                }
-//
-//                override fun onError(exception: ImageCaptureException){
-//                    Toast.makeText(baseContext, "Photo capture error: ${exception.message}", Toast.LENGTH_SHORT).show()
-//                }
-//            }
-//        )
 
+        // scatta foto, genera ImageProxy e la processa
         imageCapture.takePicture(
             ContextCompat.getMainExecutor(this),
             object: ImageCapture.OnImageCapturedCallback() {
@@ -153,8 +146,57 @@ class CameraActivity : BaseActivity() {
         )
     }
 
-    private fun processImage(image: ImageProxy) {
-        //TODO -> ml-kit aggiunto alle dipendenze per futura implementazione di riconoscimento del qr code
+    @OptIn(ExperimentalGetImage::class)
+    private fun processImage(imageProxy: ImageProxy) {
+
+        // definisce impostazioni per utilizzo dello scanner
+        val options = BarcodeScannerOptions.Builder()
+            .setBarcodeFormats(Barcode.FORMAT_QR_CODE)  // cerca di trovare qr code
+            .enableAllPotentialBarcodes()   // abilita potenziali codici da scansionare
+            .build()
+
+        val mediaImage = imageProxy.image
+
+        if(mediaImage != null){
+            Toast.makeText(this, "Processing image...", Toast.LENGTH_LONG).show()
+
+            // dall'immagine ottiene informazioni che possono essere usate per la scansione
+            val img = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
+            val scanner = BarcodeScanning.getClient(options)
+
+            // estrazione dati da tutti i codici trovati
+            val result = scanner.process(img)
+                .addOnSuccessListener{
+                        barcodes ->
+                    for (barcode in barcodes) {
+
+                        val bounds = barcode.boundingBox
+                        val corners = barcode.cornerPoints
+
+                        val rawValue = barcode.rawValue
+                        val valueType = barcode.valueType
+
+                        Toast.makeText(this, "Type: ${valueType}", Toast.LENGTH_LONG).show()
+
+                        // switch della visibilità delle view
+                        cameraView.visibility = View.GONE
+                        placeView.visibility = View.VISIBLE
+                    }
+
+                }
+                .addOnFailureListener {
+                    Toast.makeText(
+                        this,
+                        "An error occurred", Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+        } else {
+            Toast.makeText(
+                this,
+                "Lol, non worka :_(", Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     // richiedo i permessi, tramite popup, nel caso in cui non siano stati grantati
@@ -166,9 +208,9 @@ class CameraActivity : BaseActivity() {
                     permissionsGranted = false
             }
             if(!permissionsGranted){
-            Toast.makeText(baseContext,
-                "Permission request denied" ,
-                Toast.LENGTH_SHORT).show()
+                Toast.makeText(baseContext,
+                    "Permission request denied" ,
+                    Toast.LENGTH_SHORT).show()
             } else { startCamera()}
         }
 
