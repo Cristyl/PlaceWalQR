@@ -25,6 +25,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var cameraBtn: Button
     private lateinit var forgotPwd: TextView
     private lateinit var registerText: TextView
+    private lateinit var homepageBtn: Button
+    private lateinit var mapBtn: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +39,8 @@ class MainActivity : ComponentActivity() {
         registerText = findViewById(R.id.register_text)
         loginBtn = findViewById(R.id.btnLogin)
         cameraBtn = findViewById(R.id.camera_btn)
+        homepageBtn=findViewById(R.id.homepage_btn)
+        mapBtn=findViewById(R.id.map_btn)
 
         forgotPwd.setOnClickListener {
             //
@@ -52,5 +56,15 @@ class MainActivity : ComponentActivity() {
             startActivity(intent)
         }
 
+        homepageBtn.setOnClickListener {
+            var intent = Intent(this, HomepageActivity::class.java)
+            startActivity(intent)
         }
+
+        mapBtn.setOnClickListener {
+            var intent = Intent(this, MapActivity::class.java)
+            startActivity(intent)
+        }
+
     }
+}

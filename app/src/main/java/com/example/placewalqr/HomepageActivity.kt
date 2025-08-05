@@ -15,21 +15,27 @@ class HomepageActivity : BaseActivity(){
     override fun onCreate(savedInstanceState: Bundle?){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.homepage_activity)
-        val welcome_label: TextView = findViewById<TextView>(R.id.welcome_label)
-        val welcome_text=welcome_label.text.toString() +" "+ user
-        welcome_label.setText(user)
+        loadHomePage()
 
-        val seesights_label: TextView = findViewById<TextView>(R.id.seesights_text)
+        val welcome_label = findViewById<TextView>(R.id.welcome_label)
+        val welcome_text=welcome_label.text.toString() +" "+ user
+        welcome_label.setText(welcome_text)
+
+        val seesights_label = findViewById<TextView>(R.id.seesights_text)
         seesights_label.setText(see_sights.toString())
 
-        val points_label: TextView= findViewById<TextView>(R.id.points_text)
+        val points_label= findViewById<TextView>(R.id.points_text)
         points_label.setText(points.toString())
 
-        val lastplace_label: TextView= findViewById<TextView>(R.id.lastplace_text)
+        val lastplace_label= findViewById<TextView>(R.id.lastplace_text)
         lastplace_label.setText(last_place)
     }
 
     fun loadHomePage(){
         //chiamate api per i dati richeisti
+        user=""
+        see_sights=0
+        points=0
+        last_place=""
     }
 }

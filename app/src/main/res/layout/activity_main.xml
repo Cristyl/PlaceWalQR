@@ -73,6 +73,23 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/camera_btn_str" />
+
+    </TableRow>
+
+    <TableRow>
+        <Button
+            android:id="@+id/homepage_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/home_btn_str" />
+    </TableRow>
+
+    <TableRow>
+        <Button
+            android:id="@+id/map_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/map_btn_str" />
     </TableRow>
 
 </TableLayout>
