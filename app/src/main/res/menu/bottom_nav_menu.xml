@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/baseline_home_24"
+        android:title="@string/home_btn_str" />
+
+    <item
+        android:id="@+id/nav_map"
+        android:icon="@drawable/baseline_map_24"
+        android:title="@string/map_btn_str" />
+
+    <item
+        android:id="@+id/nav_achievements"
+        android:icon="@drawable/baseline_done_24"
+        android:title="@string/achievements_btn_str" />
+
+    <item
+        android:id="@+id/nav_leaderboard"
+        android:icon="@drawable/baseline_format_list_numbered_24"
+        android:title="@string/leaderboard_btn_str" />
+
+</menu>

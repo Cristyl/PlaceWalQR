@@ -28,7 +28,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-class CameraActivity : ComponentActivity() {
+class CameraActivity : BaseActivity() {
 
     private lateinit var cameraView: PreviewView
     private lateinit var takeShotBtn: Button

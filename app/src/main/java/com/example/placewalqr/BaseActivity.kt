@@ -1,0 +1,74 @@
+package com.example.placewalqr
+import android.content.Intent
+import android.widget.FrameLayout
+import android.widget.ImageButton
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import android.widget.RelativeLayout
+
+
+abstract class BaseActivity : AppCompatActivity() {
+
+    override fun setContentView(layoutResID: Int) {
+        val fullLayout = layoutInflater.inflate(R.layout.activity_base, null) as RelativeLayout
+        val activityContainer = fullLayout.findViewById<FrameLayout>(R.id.content_frame)
+        layoutInflater.inflate(layoutResID, activityContainer, true)
+        super.setContentView(fullLayout)
+
+        setupBottomNavigation()
+    }
+
+    private fun setupBottomNavigation() {
+        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        val btnCamera = findViewById<ImageButton>(R.id.btn_camera)
+
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            when(item.itemId) {
+                R.id.nav_home -> {
+                    if (this !is HomepageActivity) {
+                        startActivity(Intent(this, HomepageActivity::class.java))
+                        finish()
+                    }
+                    true
+                }
+//                R.id.nav_map -> {
+//                    if (this !is MapActivity) {
+//                        startActivity(Intent(this, MapActivity::class.java))
+//                        finish()
+//                    }
+//                    true
+//                }
+//                R.id.nav_achievements -> {
+//                    if (this !is AchievementsActivity) {
+//                        startActivity(Intent(this, AchievementsActivity::class.java))
+//                        finish()
+//                    }
+//                    true
+//                }
+//                R.id.nav_leaderboard -> {
+//                    if (this !is LeaderboardActivity) {
+//                        startActivity(Intent(this, LeaderboardActivity::class.java))
+//                        finish()
+//                    }
+//                    true
+//                }
+                else -> false
+            }
+        }
+
+        btnCamera.setOnClickListener {
+            startActivity(Intent(this, CameraActivity::class.java))
+        }
+
+        highlightCurrentMenuItem(bottomNavigationView)
+    }
+
+    private fun highlightCurrentMenuItem(bottomNavigationView: BottomNavigationView) {
+        when (this) {
+            is HomepageActivity -> bottomNavigationView.menu.findItem(R.id.nav_home).isChecked = true
+//            is MapActivity -> bottomNavigationView.menu.findItem(R.id.nav_map).isChecked = true
+//            is AchievementsActivity -> bottomNavigationView.menu.findItem(R.id.nav_achievements).isChecked = true
+//            is LeaderboardActivity -> bottomNavigationView.menu.findItem(R.id.nav_leaderboard).isChecked = true
+        }
+    }
+}

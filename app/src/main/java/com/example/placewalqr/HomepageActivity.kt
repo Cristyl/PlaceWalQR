@@ -6,7 +6,7 @@ import android.widget.TextView
 import androidx.activity.ComponentActivity
 import org.w3c.dom.Text
 
-class HomepageActivity : ComponentActivity(){
+class HomepageActivity : BaseActivity(){
     lateinit var user: String
     lateinit var see_sights: Number
     lateinit var points: Number

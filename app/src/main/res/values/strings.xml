@@ -6,6 +6,10 @@
     
     <!-- pulsante da integrare nella barra di navigazione -->
     <string name="camera_btn_str">CAMERA</string>
+    <string name="home_btn_str">HOME</string>
+    <string name="map_btn_str">MAP</string>
+    <string name="achievements_btn_str">ACHIEVEMENTS</string>
+    <string name="leaderboard_btn_str">LEADERBOARD</string>
 
     <string name="forgot_pwd">Forgot your password?</string>
     <string name="register_str">Register</string>
@@ -14,4 +18,6 @@
     <string name="seesights_home">See sights:</string>
     <string name="points_home">Point scored:</string>
     <string name="lastplace_home">Last place visited</string>
+
+
 </resources>

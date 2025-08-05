@@ -59,6 +59,8 @@ dependencies {
     implementation("androidx.camera:camera-view:1.2.2")
     implementation("androidx.camera:camera-extensions:1.2.2")
 
+    implementation("com.google.android.material:material:1.9.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
