@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- permessi per fotocamera-->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
@@ -15,6 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PlaceWalQR">
 
+        <!-- activities dell'app -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
