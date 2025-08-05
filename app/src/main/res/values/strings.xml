@@ -3,6 +3,9 @@
 
     <string name="login_btn_str">LOGIN</string>
     <string name="register_btn_str">REGISTER</string>
+    
+    <!-- pulsante da integrare nella barra di navigazione -->
+    <string name="camera_btn_str">CAMERA</string>
 
     <string name="forgot_pwd">Forgot your password?</string>
     <string name="register_str">Register</string>

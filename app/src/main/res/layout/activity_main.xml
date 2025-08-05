@@ -53,15 +53,26 @@
             android:text="@string/forgot_pwd" />
     </TableRow>
 
-        <Button
-            android:id="@+id/btnLogin"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/login_btn_str" />
-    <TextView
+    <Button
+        android:id="@+id/btnLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/login_btn_str" />
+
+    <TableRow>
+        <TextView
         android:id="@+id/register_text"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:text="@string/register_str" />
+    </TableRow>
+
+    <TableRow>
+        <Button
+            android:id="@+id/camera_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/camera_btn_str" />
+    </TableRow>
 
 </TableLayout>

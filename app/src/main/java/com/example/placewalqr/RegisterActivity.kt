@@ -29,4 +29,4 @@ class RegisterActivity : ComponentActivity() {
         pwdField = findViewById(R.id.pwd_field)
 
     }
-    }
+}

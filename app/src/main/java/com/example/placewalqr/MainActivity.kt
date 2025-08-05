@@ -22,6 +22,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var emailField: TextView
     private lateinit var pwdField: TextView
     private lateinit var loginBtn: Button
+    private lateinit var cameraBtn: Button
     private lateinit var forgotPwd: TextView
     private lateinit var registerText: TextView
 
@@ -35,6 +36,7 @@ class MainActivity : ComponentActivity() {
         forgotPwd = findViewById(R.id.forgot_pwd_text)
         registerText = findViewById(R.id.register_text)
         loginBtn = findViewById(R.id.btnLogin)
+        cameraBtn = findViewById(R.id.camera_btn)
 
         forgotPwd.setOnClickListener {
             //
@@ -42,6 +44,11 @@ class MainActivity : ComponentActivity() {
 
         registerText.setOnClickListener {
             var intent = Intent(this, RegisterActivity::class.java)
+            startActivity(intent)
+        }
+
+        cameraBtn.setOnClickListener {
+            var intent = Intent(this, CameraActivity::class.java)
             startActivity(intent)
         }
 
