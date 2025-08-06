@@ -32,8 +32,8 @@ abstract class BaseActivity : AppCompatActivity() {
                     true
                 }
                 R.id.nav_map -> {
-                    if (this !is MapActivity) {
-                        startActivity(Intent(this, MapActivity::class.java))
+                    if (this !is MapsActivity) {
+                        startActivity(Intent(this, MapsActivity::class.java))
                         finish()
                     }
                     true
@@ -66,7 +66,7 @@ abstract class BaseActivity : AppCompatActivity() {
     private fun highlightCurrentMenuItem(bottomNavigationView: BottomNavigationView) {
         when (this) {
             is HomepageActivity -> bottomNavigationView.menu.findItem(R.id.nav_home).isChecked = true
-            is MapActivity -> bottomNavigationView.menu.findItem(R.id.nav_map).isChecked = true
+            is MapsActivity -> bottomNavigationView.menu.findItem(R.id.nav_map).isChecked = true
             is AchievementsActivity -> bottomNavigationView.menu.findItem(R.id.nav_achievements).isChecked = true
             is LeaderboardActivity -> bottomNavigationView.menu.findItem(R.id.nav_leaderboard).isChecked = true
         }
