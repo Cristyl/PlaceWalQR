@@ -31,27 +31,27 @@ abstract class BaseActivity : AppCompatActivity() {
                     }
                     true
                 }
-//                R.id.nav_map -> {
-//                    if (this !is MapActivity) {
-//                        startActivity(Intent(this, MapActivity::class.java))
-//                        finish()
-//                    }
-//                    true
-//                }
-//                R.id.nav_achievements -> {
-//                    if (this !is AchievementsActivity) {
-//                        startActivity(Intent(this, AchievementsActivity::class.java))
-//                        finish()
-//                    }
-//                    true
-//                }
-//                R.id.nav_leaderboard -> {
-//                    if (this !is LeaderboardActivity) {
-//                        startActivity(Intent(this, LeaderboardActivity::class.java))
-//                        finish()
-//                    }
-//                    true
-//                }
+                R.id.nav_map -> {
+                    if (this !is MapActivity) {
+                        startActivity(Intent(this, MapActivity::class.java))
+                        finish()
+                    }
+                    true
+                }
+                R.id.nav_achievements -> {
+                    if (this !is AchievementsActivity) {
+                        startActivity(Intent(this, AchievementsActivity::class.java))
+                        finish()
+                    }
+                    true
+                }
+                R.id.nav_leaderboard -> {
+                    if (this !is LeaderboardActivity) {
+                        startActivity(Intent(this, LeaderboardActivity::class.java))
+                        finish()
+                    }
+                    true
+                }
                 else -> false
             }
         }
@@ -66,9 +66,9 @@ abstract class BaseActivity : AppCompatActivity() {
     private fun highlightCurrentMenuItem(bottomNavigationView: BottomNavigationView) {
         when (this) {
             is HomepageActivity -> bottomNavigationView.menu.findItem(R.id.nav_home).isChecked = true
-//            is MapActivity -> bottomNavigationView.menu.findItem(R.id.nav_map).isChecked = true
-//            is AchievementsActivity -> bottomNavigationView.menu.findItem(R.id.nav_achievements).isChecked = true
-//            is LeaderboardActivity -> bottomNavigationView.menu.findItem(R.id.nav_leaderboard).isChecked = true
+            is MapActivity -> bottomNavigationView.menu.findItem(R.id.nav_map).isChecked = true
+            is AchievementsActivity -> bottomNavigationView.menu.findItem(R.id.nav_achievements).isChecked = true
+            is LeaderboardActivity -> bottomNavigationView.menu.findItem(R.id.nav_leaderboard).isChecked = true
         }
     }
 }
