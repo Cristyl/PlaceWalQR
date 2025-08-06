@@ -24,7 +24,7 @@
     <string name="nickname_label">Nickname: %1$s</string>
     <string name="nickname_placeholder">Nickname: %1$s</string>
 
-    <string name="learderboard_user_placeholder">Your rank: 35° - Cristian - 1234 punti</string>
+    <string name="leaderboard_user_placeholder">Your rank: 35° - Cristian - 1234 punti</string>
     <string name="current_user_info">%1$d° - %2$s - %3$d punti</string>
     <string name="rank_format">%1$d°</string>
     <string name="score_format">%1$d pt</string>
