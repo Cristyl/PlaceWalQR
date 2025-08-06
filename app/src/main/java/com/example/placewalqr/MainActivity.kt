@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
         }
 
         mapBtn.setOnClickListener {
-            var intent = Intent(this, MapActivity::class.java)
+            var intent = Intent(this, MapsActivity::class.java)
             startActivity(intent)
         }
 
