@@ -1,15 +1,15 @@
 package com.example.placewalqr
 
 import android.os.Bundle
+import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import android.widget.TextView
 
 class LeaderboardActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        layoutInflater.inflate(R.layout.leaderboard_activity, findViewById(R.id.content_frame), true)
+        setContentView(R.layout.leaderboard_activity)
 
         val leaderboardRecyclerView = findViewById<RecyclerView>(R.id.leaderboard_recycler_view)
         val currentUserTextView = findViewById<TextView>(R.id.current_user_rank)
