@@ -18,7 +18,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 
 
-class MapActivity: AppCompatActivity(), OnMyLocationButtonClickListener, OnMyLocationClickListener, OnMapReadyCallback, OnRequestPermissionsResultCallback {
+class MapActivity: BaseActivity(), OnMyLocationButtonClickListener, OnMyLocationClickListener, OnMapReadyCallback, OnRequestPermissionsResultCallback {
     private var permissionDenied = false
     private lateinit var map: GoogleMap
 
@@ -77,7 +77,7 @@ class MapActivity: AppCompatActivity(), OnMyLocationButtonClickListener, OnMyLoc
         grantResults: IntArray
     ) {
         if(requestCode != LOCATION_PERMISSION_REQUEST_CODE){
-            super<AppCompatActivity>.onRequestPermissionsResult(requestCode, permissions, grantResults)
+            super<BaseActivity>.onRequestPermissionsResult(requestCode, permissions, grantResults)
             return
         }
 
