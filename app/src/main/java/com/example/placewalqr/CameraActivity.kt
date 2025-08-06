@@ -67,10 +67,10 @@ class CameraActivity : BaseActivity() {
         setContentView(R.layout.camera_activity)
 
         cameraView = findViewById(R.id.camera_view)
-        cameraView.visibility = View.VISIBLE
+        // cameraView.visibility = View.VISIBLE
 
         placeView = findViewById(R.id.place_view)
-        placeView.visibility = View.GONE
+        // placeView.visibility = View.GONE
 
         takeShotBtn = findViewById(R.id.camera_btn)
 
@@ -158,7 +158,7 @@ class CameraActivity : BaseActivity() {
         val mediaImage = imageProxy.image
 
         if(mediaImage != null){
-            Toast.makeText(this, "Processing image...", Toast.LENGTH_LONG).show()
+            //Toast.makeText(this, "Processing image...", Toast.LENGTH_SHORT).show()
 
             // dall'immagine ottiene informazioni che possono essere usate per la scansione
             val img = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
@@ -176,11 +176,15 @@ class CameraActivity : BaseActivity() {
                         val rawValue = barcode.rawValue
                         val valueType = barcode.valueType
 
-                        Toast.makeText(this, "Type: ${valueType}", Toast.LENGTH_LONG).show()
+                        // Toast.makeText(this, "RawValue: ${rawValue}, ValueType: ${valueType}", Toast.LENGTH_LONG).show()
+
+                        placeView.setText("Place detected: ${rawValue}")
+
+                        // Toast.makeText(this, "Type: ${valueType}", Toast.LENGTH_LONG).show()
 
                         // switch della visibilità delle view
-                        cameraView.visibility = View.GONE
-                        placeView.visibility = View.VISIBLE
+                        // cameraView.visibility = View.GONE
+                        // placeView.visibility = View.VISIBLE
                     }
 
                 }
