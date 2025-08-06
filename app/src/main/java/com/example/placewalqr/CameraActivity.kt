@@ -1,9 +1,11 @@
 package com.example.placewalqr
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
@@ -53,20 +55,21 @@ class CameraActivity : BaseActivity() {
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var cameraProvider: ProcessCameraProvider
     private lateinit var outputStream: ByteArrayOutputStream
+    private lateinit var camera: androidx.camera.core.Camera
+
+    private lateinit var lastRawValue: String
+
 
     // definizione dei permessi per accedere alla fotocamera, vedi AndroidManifest per dettagli
     private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
 
-    data class CapturedImage(
-        val bitmap: Bitmap,
-        val timestamp: Timestamp
-    )
-
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.camera_activity)
 
         cameraView = findViewById(R.id.camera_view)
+        cameraView.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
         // cameraView.visibility = View.VISIBLE
 
         placeView = findViewById(R.id.place_view)
@@ -74,14 +77,29 @@ class CameraActivity : BaseActivity() {
 
         takeShotBtn = findViewById(R.id.camera_btn)
 
+        lastRawValue = ""
+
         if(allPermissionsGranted()){
             startCamera()
         } else {
             activityResultLauncher.launch(REQUIRED_PERMISSIONS)
         }
 
-        takeShotBtn.setOnClickListener { takePhotoOnClick() }
+        takeShotBtn.setOnClickListener {
+            // placeView.setText(R.string.place_view_txt)
+            takePhotoOnClick() }
         cameraExecutor = Executors.newSingleThreadExecutor()
+
+        // set dell'autofocus e del tap to focus, migliora precisione scansione
+        cameraView.setOnTouchListener { _, motionEvent ->
+            val factory = cameraView.meteringPointFactory
+            val point = factory.createPoint(motionEvent.x, motionEvent.y)
+
+            val action = androidx.camera.core.FocusMeteringAction.Builder(point).build()
+            camera.cameraControl.startFocusAndMetering(action)
+
+            true
+        }
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
@@ -113,7 +131,7 @@ class CameraActivity : BaseActivity() {
                 // lo lego al lifecycle attuale
                 try {
                     cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(
+                    camera = cameraProvider.bindToLifecycle(
                         this, cameraSelector, preview, imageCapture
                     )
                 } catch (exc: Exception) {
@@ -133,9 +151,9 @@ class CameraActivity : BaseActivity() {
             object: ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
                     super.onCaptureSuccess(image)
-                    Toast.makeText(baseContext, "Capture success", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(baseContext, "Capture success", Toast.LENGTH_SHORT).show()
                     processImage(image)
-                    image.close()
+                    //image.close() // DA METTERE SOTTO
                 }
 
                 override fun onError(exception: ImageCaptureException) {
@@ -152,13 +170,13 @@ class CameraActivity : BaseActivity() {
         // definisce impostazioni per utilizzo dello scanner
         val options = BarcodeScannerOptions.Builder()
             .setBarcodeFormats(Barcode.FORMAT_QR_CODE)  // cerca di trovare qr code
-            .enableAllPotentialBarcodes()   // abilita potenziali codici da scansionare
+            //.enableAllPotentialBarcodes()   // abilita potenziali codici da scansionare
             .build()
 
         val mediaImage = imageProxy.image
 
         if(mediaImage != null){
-            //Toast.makeText(this, "Processing image...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Processing image...", Toast.LENGTH_LONG).show()
 
             // dall'immagine ottiene informazioni che possono essere usate per la scansione
             val img = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
@@ -170,36 +188,37 @@ class CameraActivity : BaseActivity() {
                         barcodes ->
                     for (barcode in barcodes) {
 
-                        val bounds = barcode.boundingBox
-                        val corners = barcode.cornerPoints
-
+                        // estrae il valore della stringa contenuta nel qr code
                         val rawValue = barcode.rawValue
-                        val valueType = barcode.valueType
 
                         // Toast.makeText(this, "RawValue: ${rawValue}, ValueType: ${valueType}", Toast.LENGTH_LONG).show()
+                        Log.i("CameraActivity", "barcode: ${barcode}, rawValue: ${rawValue}")
 
-                        placeView.setText("Place detected: ${rawValue}")
-
-                        // Toast.makeText(this, "Type: ${valueType}", Toast.LENGTH_LONG).show()
-
-                        // switch della visibilità delle view
-                        // cameraView.visibility = View.GONE
-                        // placeView.visibility = View.VISIBLE
+                        if(rawValue!= "" && rawValue != lastRawValue)
+                            lastRawValue = rawValue.toString()
                     }
 
+                    Log.i("CameraActivity", "lastRawValue: ${lastRawValue}")
+                    if(lastRawValue == ""){
+                        placeView.setText(R.string.qr_code_error_detection)
+                    } else {
+                        placeView.setText("Place detected: ${lastRawValue}")
+                    }
+                    imageProxy.close()
                 }
                 .addOnFailureListener {
                     Toast.makeText(
                         this,
                         "An error occurred", Toast.LENGTH_SHORT
                     ).show()
-
+                    imageProxy.close()
                 }
         } else {
             Toast.makeText(
                 this,
                 "Lol, non worka :_(", Toast.LENGTH_SHORT
             ).show()
+            imageProxy.close()
         }
     }
 

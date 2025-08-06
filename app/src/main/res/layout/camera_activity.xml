@@ -37,7 +37,7 @@
             android:id="@+id/place_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Some info" />
+            android:text="@string/place_view_txt" />
     </TableRow>
 
 </TableLayout>

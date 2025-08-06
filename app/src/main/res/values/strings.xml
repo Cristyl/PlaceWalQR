@@ -29,5 +29,6 @@
     <string name="rank_format">%1$d°</string>
     <string name="score_format">%1$d pt</string>
 
-
+    <string name="place_view_txt">Take a picture of a QR code for starting!</string>
+    <string name="qr_code_error_detection">Invalid, QR code. Try with a new photo!</string>
 </resources>
