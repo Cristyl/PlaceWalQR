@@ -1,43 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="32dp"
-    android:layout_marginLeft="8dp"
-    android:layout_marginRight="8dp"
-    android:layout_marginBottom="32dp"
-    >
-    <TableRow>
-        <TextView
-            android:id="@+id/main_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/app_name" />
-    </TableRow>
+    android:padding="16dp">
 
-    <TableRow>
-        <androidx.camera.view.PreviewView
-            android:id="@+id/camera_view"
-            android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/main_label"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/app_name"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-            />
-    </TableRow>
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_custom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.6" />
 
-    <TableRow>
-        <Button
-            android:id="@+id/camera_btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="TAKE PHOTO" />
-    </TableRow>
+    <androidx.camera.view.PreviewView
+        android:id="@+id/camera_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#000000"
+        app:layout_constraintTop_toBottomOf="@id/main_label"
+        app:layout_constraintBottom_toTopOf="@id/guideline_custom"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
 
-    <TableRow>
-        <TextView
-            android:id="@+id/place_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/place_view_txt" />
-    </TableRow>
+    <TextView
+        android:id="@+id/place_label_static_elem"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/place_label_static"
+        android:textSize="20sp"
+        app:layout_constraintTop_toBottomOf="@id/camera_view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-</TableLayout>
+    <TextView
+        android:id="@+id/place_view"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="No data available"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/place_label_static_elem"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/confirmation_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="VISIT THIS PLACE"
+        app:layout_constraintTop_toBottomOf="@id/place_view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

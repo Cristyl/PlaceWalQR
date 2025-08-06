@@ -18,6 +18,8 @@ import androidx.annotation.OptIn
 import androidx.camera.core.CameraProvider
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.FocusMeteringAction
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
@@ -25,10 +27,14 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import com.example.placewalqr.ui.theme.PlaceWalQRTheme
@@ -43,22 +49,19 @@ import java.sql.Timestamp
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import org.json.JSONObject
+import java.util.concurrent.TimeUnit
 
 class CameraActivity : BaseActivity() {
 
     private lateinit var cameraView: PreviewView
     private lateinit var placeView: TextView
-
-    private lateinit var takeShotBtn: Button
-    private lateinit var imageCapture: ImageCapture
+    private lateinit var visitBtn: Button
 
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var cameraProvider: ProcessCameraProvider
-    private lateinit var outputStream: ByteArrayOutputStream
     private lateinit var camera: androidx.camera.core.Camera
 
     private lateinit var lastRawValue: String
-
 
     // definizione dei permessi per accedere alla fotocamera, vedi AndroidManifest per dettagli
     private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
@@ -75,8 +78,6 @@ class CameraActivity : BaseActivity() {
         placeView = findViewById(R.id.place_view)
         // placeView.visibility = View.GONE
 
-        takeShotBtn = findViewById(R.id.camera_btn)
-
         lastRawValue = ""
 
         if(allPermissionsGranted()){
@@ -85,21 +86,9 @@ class CameraActivity : BaseActivity() {
             activityResultLauncher.launch(REQUIRED_PERMISSIONS)
         }
 
-        takeShotBtn.setOnClickListener {
-            // placeView.setText(R.string.place_view_txt)
-            takePhotoOnClick() }
+        visitBtn = findViewById(R.id.confirmation_button)
+
         cameraExecutor = Executors.newSingleThreadExecutor()
-
-        // set dell'autofocus e del tap to focus, migliora precisione scansione
-        cameraView.setOnTouchListener { _, motionEvent ->
-            val factory = cameraView.meteringPointFactory
-            val point = factory.createPoint(motionEvent.x, motionEvent.y)
-
-            val action = androidx.camera.core.FocusMeteringAction.Builder(point).build()
-            camera.cameraControl.startFocusAndMetering(action)
-
-            true
-        }
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
@@ -123,8 +112,18 @@ class CameraActivity : BaseActivity() {
                         it.setSurfaceProvider(cameraView.surfaceProvider)
                     }
 
-                // imageCapture per gestire la fotocamera e lo scatto della foto
-                imageCapture = ImageCapture.Builder().build()
+                // ImageAnalysis permette di fornire immagini direttamente dalla fotocamera
+                // per effettuare l'elaborazione asincronamente.
+                //setBackpressureStrategy gestisce il flusso di frame in modo da tenere
+                // solo gli ultimi che potrebbero accodarsi in situazioni di sovraccarico
+                val imageAnalysis = ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+
+                imageAnalysis.setAnalyzer(cameraExecutor, {imageProxy ->
+                    processImage(imageProxy)
+                })
+
                 val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
                 // rimuovo ogni possibile bind precedente della fotocamera e
@@ -132,35 +131,24 @@ class CameraActivity : BaseActivity() {
                 try {
                     cameraProvider.unbindAll()
                     camera = cameraProvider.bindToLifecycle(
-                        this, cameraSelector, preview, imageCapture
+                        this, cameraSelector, preview, imageAnalysis
                     )
+
+                    val factory = cameraView.meteringPointFactory
+                    val point = factory.createPoint(cameraView.width / 2f, cameraView.height / 2f)
+
+                    val autoFocusAction = FocusMeteringAction.Builder(point)
+                        .setAutoCancelDuration(10, TimeUnit.SECONDS)
+                        .build()
+
+                    camera.cameraControl.startFocusAndMetering(autoFocusAction)
+
                 } catch (exc: Exception) {
                     Toast.makeText(baseContext,
                         "Use case binding failed: ${exc.localizedMessage}",
                         Toast.LENGTH_SHORT).show()
                 }
             }, ContextCompat.getMainExecutor(this)
-        )
-    }
-
-    private fun takePhotoOnClick() {
-
-        // scatta foto, genera ImageProxy e la processa
-        imageCapture.takePicture(
-            ContextCompat.getMainExecutor(this),
-            object: ImageCapture.OnImageCapturedCallback() {
-                override fun onCaptureSuccess(image: ImageProxy) {
-                    super.onCaptureSuccess(image)
-                    //Toast.makeText(baseContext, "Capture success", Toast.LENGTH_SHORT).show()
-                    processImage(image)
-                    //image.close() // DA METTERE SOTTO
-                }
-
-                override fun onError(exception: ImageCaptureException) {
-                    super.onError(exception)
-                    Toast.makeText(baseContext, "Capture error: ${exception.message}", Toast.LENGTH_SHORT).show()
-                }
-            }
         )
     }
 
@@ -176,7 +164,7 @@ class CameraActivity : BaseActivity() {
         val mediaImage = imageProxy.image
 
         if(mediaImage != null){
-            Toast.makeText(this, "Processing image...", Toast.LENGTH_LONG).show()
+            //Toast.makeText(this, "Processing image...", Toast.LENGTH_LONG).show()
 
             // dall'immagine ottiene informazioni che possono essere usate per la scansione
             val img = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
@@ -202,24 +190,58 @@ class CameraActivity : BaseActivity() {
                     if(lastRawValue == ""){
                         placeView.setText(R.string.qr_code_error_detection)
                     } else {
-                        placeView.setText("Place detected: ${lastRawValue}")
+                        placeView.setText("${lastRawValue}")
                     }
                     imageProxy.close()
                 }
                 .addOnFailureListener {
-                    Toast.makeText(
-                        this,
-                        "An error occurred", Toast.LENGTH_SHORT
-                    ).show()
-                    imageProxy.close()
-                }
+                    Log.i( "CameraActivity", "Code detected")
+            }
         } else {
-            Toast.makeText(
-                this,
-                "Lol, non worka :_(", Toast.LENGTH_SHORT
-            ).show()
-            imageProxy.close()
+            Log.e( "CameraActivity", "No code detected")
         }
+    }
+
+    @Composable
+    fun AlertDialogExample(
+        onDismissRequest: () -> Unit,
+        onConfirmation: () -> Unit,
+        dialogTitle: String,
+        dialogText: String,
+        icon: ImageVector,
+    ) {
+        AlertDialog(
+            icon = {
+                Icon(icon, contentDescription = "Example Icon")
+            },
+            title = {
+                Text(text = dialogTitle)
+            },
+            text = {
+                Text(text = dialogText)
+            },
+            onDismissRequest = {
+                onDismissRequest()
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onConfirmation()
+                    }
+                ) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        onDismissRequest()
+                    }
+                ) {
+                    Text("Dismiss")
+                }
+            }
+        )
     }
 
     // richiedo i permessi, tramite popup, nel caso in cui non siano stati grantati
