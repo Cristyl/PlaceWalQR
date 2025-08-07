@@ -2,42 +2,66 @@ package com.example.placewalqr
 
 import android.os.Bundle
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
 
 class LeaderboardActivity : BaseActivity() {
+
+    private lateinit var leaderboardRecyclerView: RecyclerView
+    private lateinit var currentUserTextView: TextView
+    private lateinit var adapter: LeaderboardAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.leaderboard_activity)
 
-        val leaderboardRecyclerView = findViewById<RecyclerView>(R.id.leaderboard_recycler_view)
-        val currentUserTextView = findViewById<TextView>(R.id.current_user_rank)
-
-        val leaderboardData = listOf(
-            LeaderboardEntry(1, "Mario", 2500),
-            LeaderboardEntry(2, "Luigi", 2300),
-            LeaderboardEntry(3, "Anna", 2150),
-            LeaderboardEntry(4, "Lucia", 2000),
-            LeaderboardEntry(5, "Marco", 1980),
-            LeaderboardEntry(6, "Francesca", 1850),
-            LeaderboardEntry(7, "Stefano", 1750),
-            LeaderboardEntry(8, "Elena", 1700),
-            LeaderboardEntry(9, "Giorgio", 1650),
-            LeaderboardEntry(10, "Sara", 1600)
-        )
+        leaderboardRecyclerView = findViewById(R.id.leaderboard_recycler_view)
+        currentUserTextView = findViewById(R.id.current_user_rank)
 
         leaderboardRecyclerView.layoutManager = LinearLayoutManager(this)
-        leaderboardRecyclerView.adapter = LeaderboardAdapter(leaderboardData)
 
-        val currentUserNickname = "Cristian"
-        val currentUserScore = 1234
-        val currentUserPosition = 11
-        currentUserTextView.text = getString(
-            R.string.current_user_info,
-            currentUserPosition,
-            currentUserNickname,
-            currentUserScore
-        )
+        fetchLeaderboard()
+    }
+
+    private fun fetchLeaderboard() {
+        lifecycleScope.launch {
+            try {
+                val response = RetrofitInstance.apiService.getLeaderboard()
+                if (response.isSuccessful && response.body() != null) {
+                    val leaderboardData = response.body()!!
+
+                    // Assumiamo che l'ultimo elemento sia sempre l'utente corrente
+                    val currentUser = leaderboardData.last()
+
+                    // Mostro info utente corrente sotto la lista
+                    currentUserTextView.text = getString(
+                        R.string.current_user_info,
+                        currentUser.rank,
+                        currentUser.username,
+                        currentUser.score
+                    )
+
+                    // Setto l'adapter con tutta la lista (top 10 + utente)
+                    adapter = LeaderboardAdapter(leaderboardData)
+                    leaderboardRecyclerView.adapter = adapter
+
+                } else {
+                    showToast("Errore nel caricamento dati")
+                }
+            } catch (e: IOException) {
+                showToast("Errore di connessione")
+            } catch (e: HttpException) {
+                showToast("Errore nel server")
+            }
+        }
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }

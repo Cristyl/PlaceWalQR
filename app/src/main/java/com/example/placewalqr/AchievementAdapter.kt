@@ -7,7 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class AchievementAdapter(private val achievementList: List<Achievement>) :
+class AchievementAdapter(private val placeList: List<Place>) :
     RecyclerView.Adapter<AchievementAdapter.AchievementViewHolder>() {
 
     class AchievementViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -22,10 +22,15 @@ class AchievementAdapter(private val achievementList: List<Achievement>) :
     }
 
     override fun onBindViewHolder(holder: AchievementViewHolder, position: Int) {
-        val achievement = achievementList[position]
-        holder.placeNameTextView.text = achievement.placeName
-        holder.imageView.setImageResource(achievement.imageResId)
+        val place = placeList[position]
+        holder.placeNameTextView.text = place.name
+
+        // Converti imageName in resourceId drawable
+        val context = holder.imageView.context
+        val imageResId = context.resources.getIdentifier(place.imageName, "drawable", context.packageName)
+
+        holder.imageView.setImageResource(imageResId)
     }
 
-    override fun getItemCount(): Int = achievementList.size
+    override fun getItemCount(): Int = placeList.size
 }
