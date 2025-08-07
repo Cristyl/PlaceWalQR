@@ -1,6 +1,7 @@
 *.iml
 .gradle
 /local.properties
+/secrets.properties
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml
@@ -13,6 +14,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+secrets.properties
 /.idea/deviceManager.xml
 /.idea/inspectionProfiles/Project_Default.xml
 /.idea/shelf/Uncommitted_changes_before_Update_at_05_08_25,_11_19_[Changes]/shelved.patch
