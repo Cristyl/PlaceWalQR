@@ -4,13 +4,17 @@ import android.os.Bundle
 import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.ComponentActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import org.w3c.dom.Text
 
 class HomepageActivity : BaseActivity(){
     lateinit var user: String
-    lateinit var see_sights: Number
-    lateinit var points: Number
-    lateinit var last_place: String
+    lateinit var email: String
+    private var id=0
+    private var see_sights=0
+    private var points=0
+    private var last_place=""
 
     override fun onCreate(savedInstanceState: Bundle?){
         super.onCreate(savedInstanceState)
@@ -31,11 +35,35 @@ class HomepageActivity : BaseActivity(){
         lastplace_label.setText(last_place)
     }
 
-    fun loadHomePage(){
-        //chiamate api per i dati richeisti
-        user=""
-        see_sights=0
-        points=0
-        last_place=""
+    private fun loadHomePage(){
+        val sharedPreferences=getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        user=sharedPreferences.getString("nickname", "").toString()
+        email=sharedPreferences.getString("email", "").toString()
+        id=sharedPreferences.getString("id", "0").toString().toInt()
+
+        lifecycleScope.launch {
+            try {
+                val request= UserIdRequest(id)
+                val responsePoint= RetrofitInstance.apiService.getPointsById(request)
+
+                val responsePlace = RetrofitInstance.apiService.findLastPlaceById(request)
+                runOnUiThread {
+                    if(responsePoint.code()==404){
+                        val body=responsePoint.body()
+                        print(body)
+                        points= body?.points ?: 0
+                        see_sights=body?.count ?: 0
+                    }
+
+                    if(responsePlace.code()==404){
+                        val body=responsePlace.body()
+                        print(body)
+                        last_place=body?.name?:"None"
+                    }
+                }
+            }catch (e: Exception){
+
+            }
+        }
     }
 }

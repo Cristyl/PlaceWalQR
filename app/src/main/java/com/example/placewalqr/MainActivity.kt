@@ -95,6 +95,7 @@ class MainActivity : ComponentActivity() {
                     val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
                     val editor = sharedPreferences.edit()
 
+                    editor.putString("id", userInfo.id.toString())
                     editor.putString("name", userInfo.name)
                     editor.putString("surname", userInfo.surname)
                     editor.putString("dob", userInfo.dob.toString())

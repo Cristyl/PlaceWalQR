@@ -1,5 +1,6 @@
 package com.example.placewalqr
 
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -25,4 +26,18 @@ interface ApiService {
     //suspend fun visitPlaceById(@Query("place_id") place_id: Int, @Query("user_email") user_email: String, @Query("date_of_visit") date_of_visit: String): Response<VisitPlaceResponse>
     suspend fun visitPlaceById(@Body request: VisitPlaceRequest): Response<VisitPlaceResponse>
 
+    @GET("api/findUserByEmail")
+    suspend fun findUserByEmail()
+
+    @GET("api/getPointById")
+    suspend fun getPointsById(@Body requestBody: UserIdRequest): Response<PointsByIdResponse>
+
+    @GET("api/findAllPlaces")
+    suspend fun findAllPlaces(): Response<List<Place>>
+
+    @GET("api/findAllPlacesByUser")
+    suspend fun findAllPlacesByUser()
+
+    @GET("api/findLastPlaceById")
+    suspend fun findLastPlaceById(@Body requestBody: UserIdRequest): Response<LastPlaceResponse>
 }
