@@ -111,7 +111,7 @@ class RegisterActivity : ComponentActivity() {
                 val selectedDate = Calendar.getInstance()
                 selectedDate.set(selectedYear, selectedMonth, selectedDay)
 
-                val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 dobField.setText(dateFormatter.format(selectedDate.time))
             },
             currentYear,

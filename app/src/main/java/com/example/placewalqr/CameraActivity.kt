@@ -26,9 +26,11 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -40,6 +42,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.placewalqr.ui.theme.PlaceWalQRTheme
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
@@ -57,6 +65,7 @@ import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
+import kotlin.math.round
 
 class CameraActivity : BaseActivity() {
 
@@ -71,6 +80,14 @@ class CameraActivity : BaseActivity() {
 
     private lateinit var lastRawValue: String
     private var isProcessingEnabled: Boolean = true
+
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationCallback: LocationCallback
+    private lateinit var locationRequest: LocationRequest
+    private val LOCATION_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION
+
+    private var longitude = 0.0
+    private var latitude = 0.0
 
     // definizione dei permessi per accedere alla fotocamera, vedi AndroidManifest per dettagli
     private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
@@ -90,7 +107,27 @@ class CameraActivity : BaseActivity() {
 
         lastRawValue = ""
 
+        // inizializzazione e avvio tracciamento posizione
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        locationRequest = LocationRequest.Builder(500L).apply{
+            setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+            setMinUpdateIntervalMillis(1000L)
+        }.build()
+
+        locationCallback = object: LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                super.onLocationResult(locationResult)
+                Log.i("LocationActivity", "onLocationResult")
+                locationResult?.locations?.forEach{ location ->
+                    Log.i("LocationActivity", " === Position: ${location.latitude} - ${location.longitude} === ")
+                    latitude = round(location.latitude * 10000) / 10000
+                    longitude = round(location.longitude * 10000) / 10000
+                }
+            }
+        }
+
         if(allPermissionsGranted()){
+            startLocationUpdates()
             startCamera()
         } else {
             activityResultLauncher.launch(REQUIRED_PERMISSIONS)
@@ -99,6 +136,7 @@ class CameraActivity : BaseActivity() {
         visitBtn = findViewById(R.id.confirmation_button)
 
         cameraExecutor = Executors.newSingleThreadExecutor()
+
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
@@ -254,7 +292,8 @@ class CameraActivity : BaseActivity() {
                         placeInfoView.text = info?.information
                     }
                     stopCamera()
-                }else {
+                    stopLocationUpdates()
+                } else {
                     Log.w("CameraActivity", "Bad request, response.body: ${response.code()}")
                     if(response.code() >= 400){
                         Toast.makeText(baseContext, "Bad request", Toast.LENGTH_SHORT).show()
@@ -285,6 +324,40 @@ class CameraActivity : BaseActivity() {
         } catch (exc: Exception) {
             Log.e("CameraActivity", "Error stopping camera: ${exc.localizedMessage}")
         }
+    }
+
+    fun checkPermission(permission: String): Boolean {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                permission
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.i("LocationActivity", "Location permission granted")
+            return true
+        } else {
+            Log.e("LoactionActivity", "Location permission denied")
+            return false
+        }
+    }
+
+    private fun startLocationUpdates() {
+        if(checkPermission(LOCATION_PERMISSION)) {
+            try {
+                fusedLocationClient.requestLocationUpdates(
+                    locationRequest,
+                    locationCallback,
+                    mainLooper
+                )
+                Log.i("LocationActivity", "Location updates started")
+            } catch (e: SecurityException) {
+                Log.e("LocationActivity", "Error starting location updates", e)
+            }
+        }
+    }
+
+    private fun stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+        Log.i("LocationActivity", "Location updates stopped")
     }
 
     // richiedo i permessi, tramite popup, nel caso in cui non siano stati grantati
