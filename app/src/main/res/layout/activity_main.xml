@@ -1,95 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="32dp"
-    android:layout_marginLeft="8dp"
-    android:layout_marginRight="8dp"
-    android:layout_marginBottom="32dp"
-    >
+    android:padding="16dp">
 
-    <TableRow>
-        <TextView
-            android:id="@+id/main_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-
-            android:text="@string/app_name" />
-    </TableRow>
-    <TableRow>
-        <TextView
-            android:id="@+id/email_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Email: " />
-        <EditText
-            android:id="@+id/email_field"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textEmailAddress" />
-    </TableRow>
-
-    <TableRow>
-        <TextView
-            android:id="@+id/pwd_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Password: " />
-        <EditText
-            android:id="@+id/pwd_field"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPassword" />
-    </TableRow>
-
-    <TableRow>
-        <TextView
-            android:id="@+id/forgot_pwd_text"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="@string/forgot_pwd" />
-    </TableRow>
-
-    <Button
-        android:id="@+id/btnLogin"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/login_btn_str" />
+        android:gravity="center_horizontal">
 
-    <TableRow>
         <TextView
-        android:id="@+id/register_text"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/register_str" />
-    </TableRow>
+            android:id="@+id/main_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textAppearance="?attr/textAppearanceHeadline5"
+            android:layout_marginBottom="24dp" />
 
-    <TableRow>
-        <Button
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Email">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/email_field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textEmailAddress" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Password"
+            android:layout_marginTop="12dp"
+            app:passwordToggleEnabled="true">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/pwd_field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/forgot_pwd_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/forgot_pwd"
+            android:textAppearance="?attr/textAppearanceBody2"
+            android:textColor="?attr/colorPrimary"
+            android:layout_marginTop="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/login_btn_str"
+            android:layout_marginTop="16dp" />
+
+        <TextView
+            android:id="@+id/register_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/register_str"
+            android:layout_marginTop="16dp"
+            android:textAppearance="?attr/textAppearanceBody2"
+            android:textColor="?attr/colorPrimary" />
+
+        <TextView
+            android:id="@+id/debugging_buttons_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Debugging purposes only buttons - TO REMOVE"
+            android:layout_marginTop="16dp"
+            android:textAppearance="?attr/textAppearanceBody2"/>
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/camera_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/camera_btn_str" />
+            android:text="@string/camera_btn_str"
+            android:layout_marginTop="16dp"
+            style="?attr/materialButtonOutlinedStyle" />
 
-    </TableRow>
-
-    <TableRow>
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/homepage_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/home_btn_str" />
-    </TableRow>
+            android:text="@string/home_btn_str"
+            android:layout_marginTop="8dp"
+            style="?attr/materialButtonOutlinedStyle" />
 
-    <TableRow>
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/map_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/map_btn_str" />
-    </TableRow>
+            android:text="@string/map_btn_str"
+            android:layout_marginTop="8dp"
+            style="?attr/materialButtonOutlinedStyle" />
 
-</TableLayout>
+    </LinearLayout>
+</ScrollView>

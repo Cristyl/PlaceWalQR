@@ -2,8 +2,10 @@ package com.example.placewalqr
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -14,7 +16,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.lifecycleScope
 import com.example.placewalqr.ui.theme.PlaceWalQRTheme
+import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
+import kotlin.math.log
 
 class MainActivity : ComponentActivity() {
 
@@ -46,6 +53,10 @@ class MainActivity : ComponentActivity() {
             //
         }
 
+        loginBtn.setOnClickListener {
+            remoteLogin()
+        }
+
         registerText.setOnClickListener {
             var intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
@@ -67,4 +78,45 @@ class MainActivity : ComponentActivity() {
         }
 
     }
+
+    private fun remoteLogin() {
+        val email = emailField.text.toString()
+        val password = pwdField.text.toString()
+
+        val loginRequest = LoginRequest(email, password)
+
+        lifecycleScope.launch {
+            try {
+                val response = RetrofitInstance.apiService.login(loginRequest)
+                if (response.isSuccessful && response.body() != null) {
+                    val userInfo = response.body()!!
+
+                    val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+                    val editor = sharedPreferences.edit()
+
+                    editor.putString("name", userInfo.name)
+                    editor.putString("surname", userInfo.surname)
+                    editor.putString("dob", userInfo.dob.toString())
+                    editor.putString("email", userInfo.email)
+                    editor.putString("nickname", userInfo.nickname)
+                    editor.apply()
+
+                    var intent = Intent(this@MainActivity, HomepageActivity::class.java)
+                    startActivity(intent)
+
+                } else {
+                    Log.e("MainActivity", "Error during login: ${response.errorBody()?.string()}")
+                    Toast.makeText(baseContext, "Error during data fetching", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: IOException) {
+                Log.e("MainActivity", "IO Exception: ${e.message}")
+                Toast.makeText(baseContext, "Connection error", Toast.LENGTH_SHORT).show()
+            } catch (e: HttpException) {
+                Log.e("MainActivity", "HTTP Exception: ${e.message}")
+                Toast.makeText(baseContext, "Server error", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    }
+
 }

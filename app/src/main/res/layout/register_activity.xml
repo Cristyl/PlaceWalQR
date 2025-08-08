@@ -1,119 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="32dp"
-    android:layout_marginLeft="8dp"
-    android:layout_marginRight="8dp"
-    android:layout_marginBottom="32dp"
-    >
-    <TableRow>
-        <TextView
-            android:id="@+id/main_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/app_name" />
-    </TableRow>
-    <TableRow>
-        <TextView
-            android:id="@+id/textViewName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Your name: " />
-        <EditText
-            android:id="@+id/name_field"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPersonName"
-            android:contentDescription="Name"
-            android:hint="name"/>
-    </TableRow>
-    <TableRow>
-        <TextView
-            android:id="@+id/textViewSurname"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Your surname: " />
-        <EditText
-            android:id="@+id/surname_field"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPersonName"
-            android:contentDescription="Name"
-            android:hint="surname"/>
-    </TableRow>
+    android:padding="16dp">
 
-    <TableRow>
-        <TextView
-            android:id="@+id/textViewNickname"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Your nickname: " />
-        <EditText
-            android:id="@+id/nickname_field"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPersonName"
-            android:contentDescription="Nickname"
-            android:hint="nickname"/>
-    </TableRow>
-
-    <TableRow>
-        <TextView
-            android:id="@+id/textViewEmail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Your email: " />
-        <EditText
-            android:id="@+id/email_field"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textEmailAddress"
-            android:contentDescription="Email"
-            android:hint="email"/>
-    </TableRow>
-
-    <TableRow>
-        <TextView
-            android:id="@+id/textViewPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Your password: " />
-        <EditText
-            android:id="@+id/pwd_field"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPassword"
-            android:contentDescription="Password"
-            android:hint="password"/>
-    </TableRow>
-
-    <TableRow>
-        <TextView
-            android:id="@+id/textViewPasswordConfirm"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Your password: " />
-        <EditText
-            android:id="@+id/pwd_confirm_field"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPassword"
-            android:contentDescription="Password confirm"
-            android:hint="confirm password"/>
-    </TableRow>
-
-    <Button
-        android:id="@+id/btnLogin"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/register_btn_str" />
+        android:gravity="center_horizontal">
 
-</TableLayout>
+        <!-- Titolo -->
+        <TextView
+            android:id="@+id/main_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textAppearance="?attr/textAppearanceHeadline5"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Nome -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Your name">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/name_field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Cognome -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Your surname"
+            android:layout_marginTop="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/surname_field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Nickname -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Your nickname"
+            android:layout_marginTop="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/nickname_field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Email -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Your email"
+            android:layout_marginTop="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/email_field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textEmailAddress" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Password -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Your password"
+            android:layout_marginTop="12dp"
+            app:passwordToggleEnabled="true">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/pwd_field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Conferma password -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Confirm password"
+            android:layout_marginTop="12dp"
+            app:passwordToggleEnabled="true">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/pwd_confirm_field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Bottone -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/register_btn_str"
+            />
+
+    </LinearLayout>
+</ScrollView>
