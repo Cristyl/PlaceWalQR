@@ -1,13 +1,16 @@
-package com.example.placewalqr
-
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import com.example.placewalqr.ApiService
+import com.example.placewalqr.LoggingInterceptor
 
 object RetrofitInstance {
+    private val client = okhttp3.OkHttpClient.Builder()
+        .addInterceptor(LoggingInterceptor()) // 👈 aggiunto qui
+        .build()
+
     val apiService: ApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl("https://placewalqr.pythonanywhere.com/")  // Cambia con il tuo URL
-            .addConverterFactory(GsonConverterFactory.create())
+        retrofit2.Retrofit.Builder()
+            .baseUrl("https://placewalqr.pythonanywhere.com/") // il tuo backend
+            .addConverterFactory(retrofit2.converter.gson.GsonConverterFactory.create())
+            .client(client)
             .build()
             .create(ApiService::class.java)
     }

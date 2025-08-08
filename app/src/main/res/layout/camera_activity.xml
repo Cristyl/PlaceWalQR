@@ -17,23 +17,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_custom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.6" />
-
     <androidx.camera.view.PreviewView
         android:id="@+id/camera_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="#000000"
         app:layout_constraintTop_toBottomOf="@id/main_label"
-        app:layout_constraintBottom_toTopOf="@id/guideline_custom"
+        app:layout_constraintBottom_toTopOf="@id/place_label_static_elem"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        />
+        app:layout_constraintHeight_percent="0.55" />
 
     <TextView
         android:id="@+id/place_label_static_elem"
@@ -54,7 +47,26 @@
         android:text="No data available"
         android:textSize="24sp"
         android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@id/place_label_static_elem"
+        android:gravity="left"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/place_label_static_elem" />
+
+    <TextView
+        android:id="@+id/place_info"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:text="Description"
+        android:textSize="16sp"
+        android:textStyle="italic"
+        android:gravity="left"
+        android:ellipsize="end"
+        android:scrollbars="vertical"
+        android:overScrollMode="ifContentScrolls"
+        app:layout_constraintTop_toBottomOf="@id/place_view"
+        app:layout_constraintBottom_toTopOf="@id/confirmation_button"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -62,11 +74,11 @@
         android:id="@+id/confirmation_button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="40dp"
         android:text="VISIT THIS PLACE"
-        app:layout_constraintTop_toBottomOf="@id/place_view"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

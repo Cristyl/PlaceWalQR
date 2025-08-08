@@ -2,6 +2,7 @@ package com.example.placewalqr
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -37,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.placewalqr.ui.theme.PlaceWalQRTheme
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.mlkit.vision.barcode.BarcodeScanner
@@ -44,17 +46,23 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
+import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.sql.Timestamp
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import org.json.JSONObject
+import retrofit2.HttpException
+import java.io.IOException
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 
 class CameraActivity : BaseActivity() {
 
     private lateinit var cameraView: PreviewView
     private lateinit var placeView: TextView
+    private lateinit var placeInfoView: TextView
     private lateinit var visitBtn: Button
 
     private lateinit var cameraExecutor: ExecutorService
@@ -62,6 +70,7 @@ class CameraActivity : BaseActivity() {
     private lateinit var camera: androidx.camera.core.Camera
 
     private lateinit var lastRawValue: String
+    private var isProcessingEnabled: Boolean = true
 
     // definizione dei permessi per accedere alla fotocamera, vedi AndroidManifest per dettagli
     private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
@@ -76,6 +85,7 @@ class CameraActivity : BaseActivity() {
         // cameraView.visibility = View.VISIBLE
 
         placeView = findViewById(R.id.place_view)
+        placeInfoView = findViewById(R.id.place_info)
         // placeView.visibility = View.GONE
 
         lastRawValue = ""
@@ -142,6 +152,9 @@ class CameraActivity : BaseActivity() {
                         .build()
 
                     camera.cameraControl.startFocusAndMetering(autoFocusAction)
+                    visitBtn.setOnClickListener {
+                        visitPlaceById()
+                    }
 
                 } catch (exc: Exception) {
                     Toast.makeText(baseContext,
@@ -154,6 +167,11 @@ class CameraActivity : BaseActivity() {
 
     @OptIn(ExperimentalGetImage::class)
     private fun processImage(imageProxy: ImageProxy) {
+
+        if(!isProcessingEnabled){
+            imageProxy.close()
+            return
+        }
 
         // definisce impostazioni per utilizzo dello scanner
         val options = BarcodeScannerOptions.Builder()
@@ -187,8 +205,8 @@ class CameraActivity : BaseActivity() {
                     }
 
                     Log.i("CameraActivity", "lastRawValue: ${lastRawValue}")
-                    if(lastRawValue == ""){
-                        placeView.setText(R.string.qr_code_error_detection)
+                    if(lastRawValue == "" || lastRawValue.toIntOrNull() == null){
+                        placeView.setText("Invalid QR: ${lastRawValue}")
                     } else {
                         placeView.setText("${lastRawValue}")
                     }
@@ -199,6 +217,73 @@ class CameraActivity : BaseActivity() {
             }
         } else {
             Log.e( "CameraActivity", "No code detected")
+        }
+    }
+
+    private fun visitPlaceById() {
+        isProcessingEnabled = false
+        val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val userEmail = sharedPreferences.getString("email", "").toString()
+
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val current = LocalDateTime.now().format(formatter).toString()
+
+        //Log.w("CameraActivity", "place_id: $lastRawValue, user_email: $userEmail, date_of_visit: $current")
+
+        lifecycleScope.launch {
+            try{
+                val visitPlaceRequest = VisitPlaceRequest(lastRawValue.toInt(), userEmail, current)
+                val response = RetrofitInstance.apiService.visitPlaceById(visitPlaceRequest)
+
+                if(response.isSuccessful && response.body() != null){
+                    val info = response.body()!!
+
+                    Log.w("CameraActivity", "info_status = ${info.status}")
+                    //Log.i("CameraActivity", "RESPONSE - Name: ${info.place_name}, Description: ${info.place_description}, Status: ${info.status}")
+
+                    if(response.code() == 201){
+                        Toast.makeText(baseContext, "Congratulation! You visited this place!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        if(response.code() == 200) {
+                            Toast.makeText(baseContext, "You already saw this place!", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    runOnUiThread {
+                        val info = response.body()
+                        placeView.text = info?.name
+                        placeInfoView.text = info?.information
+                    }
+                    stopCamera()
+                }else {
+                    Log.w("CameraActivity", "Bad request, response.body: ${response.code()}")
+                    if(response.code() >= 400){
+                        Toast.makeText(baseContext, "Bad request", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: IOException){
+                Log.e("RegisterActivity", "IO Exception: ${e}")
+                Toast.makeText(baseContext, "Connection error", Toast.LENGTH_SHORT).show()
+            } catch (e: HttpException) {
+                Log.e("MainActivity", "HTTP Exception: ${e.message}")
+                Toast.makeText(baseContext, "Server error", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun stopCamera() {
+        try {
+            // Ferma il processamento delle immagini
+            isProcessingEnabled = false
+
+            // Unbind tutti i use cases dalla fotocamera
+            cameraProvider.unbindAll()
+
+            // Shutdown dell'executor
+            cameraExecutor.shutdown()
+
+            Log.i("CameraActivity", "Camera stopped successfully")
+        } catch (exc: Exception) {
+            Log.e("CameraActivity", "Error stopping camera: ${exc.localizedMessage}")
         }
     }
 

@@ -21,4 +21,8 @@ interface ApiService {
     @POST("api/register")
     suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
 
+    @POST("api/visitPlaceById")
+    //suspend fun visitPlaceById(@Query("place_id") place_id: Int, @Query("user_email") user_email: String, @Query("date_of_visit") date_of_visit: String): Response<VisitPlaceResponse>
+    suspend fun visitPlaceById(@Body request: VisitPlaceRequest): Response<VisitPlaceResponse>
+
 }
