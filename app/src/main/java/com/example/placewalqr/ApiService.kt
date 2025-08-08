@@ -17,5 +17,8 @@ interface ApiService {
 
     @POST("api/login")
     suspend fun login(@Body request: LoginRequest): Response<User>
-    //suspend fun login(@Query("email") email: String, @Query("password") password: String): Response<User>
+
+    @POST("api/register")
+    suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
+
 }

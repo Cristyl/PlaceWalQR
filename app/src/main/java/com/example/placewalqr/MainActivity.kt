@@ -91,6 +91,7 @@ class MainActivity : ComponentActivity() {
                 if (response.isSuccessful && response.body() != null) {
                     val userInfo = response.body()!!
 
+                    // storing user information for future uses
                     val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
                     val editor = sharedPreferences.edit()
 
@@ -103,7 +104,7 @@ class MainActivity : ComponentActivity() {
 
                     var intent = Intent(this@MainActivity, HomepageActivity::class.java)
                     startActivity(intent)
-
+                    finish()
                 } else {
                     Log.e("MainActivity", "Error during login: ${response.errorBody()?.string()}")
                     Toast.makeText(baseContext, "Error during data fetching", Toast.LENGTH_SHORT).show()
