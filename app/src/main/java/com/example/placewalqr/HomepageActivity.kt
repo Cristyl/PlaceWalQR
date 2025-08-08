@@ -1,6 +1,7 @@
 package com.example.placewalqr
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.ComponentActivity
@@ -15,6 +16,9 @@ class HomepageActivity : BaseActivity(){
     private var see_sights=0
     private var points=0
     private var last_place=""
+    private lateinit var points_label: TextView
+    private lateinit var seesights_label: TextView
+    private lateinit var lastplace_label: TextView
 
     override fun onCreate(savedInstanceState: Bundle?){
         super.onCreate(savedInstanceState)
@@ -25,14 +29,9 @@ class HomepageActivity : BaseActivity(){
         val welcome_text=welcome_label.text.toString() +" "+ user
         welcome_label.setText(welcome_text)
 
-        val seesights_label = findViewById<TextView>(R.id.seesights_text)
-        seesights_label.setText(see_sights.toString())
-
-        val points_label= findViewById<TextView>(R.id.points_text)
-        points_label.setText(points.toString())
-
-        val lastplace_label= findViewById<TextView>(R.id.lastplace_text)
-        lastplace_label.setText(last_place)
+        seesights_label = findViewById<TextView>(R.id.seesights_text)
+        points_label= findViewById<TextView>(R.id.points_text)
+        lastplace_label= findViewById<TextView>(R.id.lastplace_text)
     }
 
     private fun loadHomePage(){
@@ -43,22 +42,21 @@ class HomepageActivity : BaseActivity(){
 
         lifecycleScope.launch {
             try {
-                val request= UserIdRequest(id)
-                val responsePoint= RetrofitInstance.apiService.getPointsById(request)
-
-                val responsePlace = RetrofitInstance.apiService.findLastPlaceById(request)
+                val responsePoint= RetrofitInstance.apiService.getPointsById(id)
+                val responsePlace = RetrofitInstance.apiService.findLastPlaceById(id)
                 runOnUiThread {
-                    if(responsePoint.code()==404){
+                    if(responsePoint.code()==200){
                         val body=responsePoint.body()
-                        print(body)
                         points= body?.points ?: 0
+                        points_label.setText(points.toString())
                         see_sights=body?.count ?: 0
+                        seesights_label.setText(see_sights.toString())
                     }
 
-                    if(responsePlace.code()==404){
+                    if(responsePlace.code()==200){
                         val body=responsePlace.body()
-                        print(body)
                         last_place=body?.name?:"None"
+                        lastplace_label.setText(last_place)
                     }
                 }
             }catch (e: Exception){

@@ -5,6 +5,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
@@ -29,8 +30,8 @@ interface ApiService {
     @GET("api/findUserByEmail")
     suspend fun findUserByEmail()
 
-    @GET("api/getPointById")
-    suspend fun getPointsById(@Body requestBody: UserIdRequest): Response<PointsByIdResponse>
+    @GET("api/getPointsById/{id}")
+    suspend fun getPointsById(@Path("id") user_id: Int): Response<PointsByIdResponse>
 
     @GET("api/findAllPlaces")
     suspend fun findAllPlaces(): Response<List<Place>>
@@ -38,6 +39,6 @@ interface ApiService {
     @GET("api/findAllPlacesByUser")
     suspend fun findAllPlacesByUser()
 
-    @GET("api/findLastPlaceById")
-    suspend fun findLastPlaceById(@Body requestBody: UserIdRequest): Response<LastPlaceResponse>
+    @GET("api/findLastPlaceById/{id}")
+    suspend fun findLastPlaceById(@Path("id") user_id: Int): Response<LastPlaceResponse>
 }
