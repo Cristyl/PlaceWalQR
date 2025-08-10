@@ -10,6 +10,7 @@ import android.os.Looper
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -26,6 +27,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.Marker
+import kotlinx.coroutines.launch
 
 class MapsActivity : BaseActivity(), OnMapReadyCallback {
 
@@ -58,6 +60,39 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        val sharedPreferences=getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val id=sharedPreferences.getString("id", "0").toString().toInt()
+        lifecycleScope.launch{
+            try {
+                val response=RetrofitInstance.apiService.findVisitedPlaceById(id)
+                runOnUiThread {
+                    val places=response.body()
+                    places?.forEach { place ->
+                        val placeLatLng= LatLng(place.latitude, place.longitude)
+                        if (place.visited){
+                            mMap.addMarker(
+                                MarkerOptions()
+                                    .position(placeLatLng)
+                                    .title(place.name)
+                                    .snippet("Lat: ${place.latitude}, Lng: ${place.longitude}")
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                            )
+                        }else{
+                            mMap.addMarker(
+                                MarkerOptions()
+                                    .position(placeLatLng)
+                                    .title(place.name)
+                                    .snippet("Lat: ${place.latitude}, Lng: ${place.longitude}")
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                            )
+                        }
+                    }
+                }
+            }catch (e: Exception){
+
+            }
+        }
 
         //FAB configuration for centering on current position
         //binding.fabMyLocation.setOnClickListener{

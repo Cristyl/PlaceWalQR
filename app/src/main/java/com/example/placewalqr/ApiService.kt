@@ -41,4 +41,7 @@ interface ApiService {
 
     @GET("api/findLastPlaceById/{id}")
     suspend fun findLastPlaceById(@Path("id") user_id: Int): Response<LastPlaceResponse>
+
+    @GET("api/findVisitedPlaceById/{id}")
+    suspend fun findVisitedPlaceById(@Path("id") user_id: Int): Response<List<VisitedPlaceResponse>>
 }
