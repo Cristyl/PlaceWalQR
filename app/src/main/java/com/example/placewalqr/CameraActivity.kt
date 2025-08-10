@@ -2,18 +2,16 @@ package com.example.placewalqr
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.camera.core.CameraProvider
@@ -26,40 +24,22 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.animation.slideOutVertically
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import com.example.placewalqr.ui.theme.PlaceWalQRTheme
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
-import com.google.common.util.concurrent.ListenableFuture
-import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import kotlinx.coroutines.launch
-import java.io.ByteArrayOutputStream
-import java.sql.Timestamp
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import org.json.JSONObject
 import retrofit2.HttpException
 import java.io.IOException
 import java.time.LocalDateTime
@@ -73,7 +53,11 @@ class CameraActivity : BaseActivity() {
     private lateinit var placeView: TextView
     private lateinit var placeInfoView: TextView
     private lateinit var visitBtn: Button
+    private lateinit var souvenirBtn: Button
 
+    private lateinit var confirmSouvenirBtn: Button
+    private lateinit var discardSouvenirBtn: Button
+    private lateinit var imageCapture: ImageCapture
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var cameraProvider: ProcessCameraProvider
     private lateinit var camera: androidx.camera.core.Camera
@@ -103,6 +87,8 @@ class CameraActivity : BaseActivity() {
 
         placeView = findViewById(R.id.place_view)
         placeInfoView = findViewById(R.id.place_info)
+
+        placeInfoView.visibility = View.GONE
         // placeView.visibility = View.GONE
 
         lastRawValue = ""
@@ -135,6 +121,14 @@ class CameraActivity : BaseActivity() {
 
         visitBtn = findViewById(R.id.confirmation_button)
 
+        souvenirBtn = findViewById(R.id.take_souvenir_photo)
+        confirmSouvenirBtn = findViewById(R.id.confirm_souvenir_photo)
+        discardSouvenirBtn = findViewById(R.id.discard_souvenir_photo)
+        souvenirBtn.setOnClickListener { updateCamera() }
+        souvenirBtn.visibility = View.GONE
+        confirmSouvenirBtn.visibility = View.GONE
+        discardSouvenirBtn.visibility = View.GONE
+
         cameraExecutor = Executors.newSingleThreadExecutor()
 
     }
@@ -162,7 +156,7 @@ class CameraActivity : BaseActivity() {
 
                 // ImageAnalysis permette di fornire immagini direttamente dalla fotocamera
                 // per effettuare l'elaborazione asincronamente.
-                //setBackpressureStrategy gestisce il flusso di frame in modo da tenere
+                // setBackpressureStrategy gestisce il flusso di frame in modo da tenere
                 // solo gli ultimi che potrebbero accodarsi in situazioni di sovraccarico
                 val imageAnalysis = ImageAnalysis.Builder()
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
@@ -243,10 +237,11 @@ class CameraActivity : BaseActivity() {
                     }
 
                     Log.i("CameraActivity", "lastRawValue: ${lastRawValue}")
+
                     if(lastRawValue == "" || lastRawValue.toIntOrNull() == null){
-                        placeView.setText("Invalid QR: ${lastRawValue}")
+                        placeView.setText("Scanning for a valid QR code...")
                     } else {
-                        placeView.setText("${lastRawValue}")
+                        placeView.setText("Place detected, now click the button!")
                     }
                     imageProxy.close()
                 }
@@ -290,9 +285,14 @@ class CameraActivity : BaseActivity() {
                         val info = response.body()
                         placeView.text = info?.name
                         placeInfoView.text = info?.information
+                        placeInfoView.visibility = View.VISIBLE
                     }
                     stopCamera()
                     stopLocationUpdates()
+                    cameraView.visibility = View.GONE
+                    visitBtn.visibility = View.GONE
+                    souvenirBtn.visibility = View.VISIBLE
+
                 } else {
                     Log.w("CameraActivity", "Bad request, response.body: ${response.code()}")
                     if(response.code() >= 400){
@@ -326,6 +326,70 @@ class CameraActivity : BaseActivity() {
         }
     }
 
+    private fun updateCamera(){
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+
+        cameraProviderFuture.addListener(
+            {
+                try {
+                    // ottengo il camera provider
+                    cameraProvider = cameraProviderFuture.get()
+
+                    val preview = androidx.camera.core.Preview.Builder()
+                        .build()
+                        .also {
+                            it.setSurfaceProvider(cameraView.surfaceProvider)
+                        }
+
+                    // solita selezione della camera posteriore
+                    val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+                    imageCapture = ImageCapture.Builder()
+                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
+                        .setTargetRotation(windowManager.defaultDisplay.rotation)
+                        .build()
+
+                    // rimuovo vecchi bind e lego al lifecycle
+                    cameraProvider.unbindAll()
+
+                    // IMPORTANTE: mettere imageCapture dentro al provider della camera,
+                    // se non lo metti non ti scatta la foto!!!
+                    camera = cameraProvider.bindToLifecycle(
+                        this,
+                        cameraSelector,
+                        imageCapture,
+                        preview
+                    )
+
+                    // imposto autofocus al centro
+                    val factory = cameraView.meteringPointFactory
+                    val point = factory.createPoint(cameraView.width / 2f, cameraView.height / 2f)
+
+                    val autoFocusAction = FocusMeteringAction.Builder(point)
+                        .setAutoCancelDuration(10, TimeUnit.SECONDS)
+                        .build()
+
+                    camera.cameraControl.startFocusAndMetering(autoFocusAction)
+
+                    placeInfoView.visibility = View.GONE
+
+                    Log.i("CameraActivity", "Camera reinitialized for souvenir")
+
+                } catch (exc: Exception) {
+                    Log.e("CameraActivity", "Error updating camera: ${exc.localizedMessage}")
+                    Toast.makeText(baseContext,
+                        "Camera initialization failed: ${exc.localizedMessage}",
+                        Toast.LENGTH_SHORT).show()
+                }
+            },
+            ContextCompat.getMainExecutor(this)
+        )
+
+        cameraView.visibility = View.VISIBLE
+        visitBtn.visibility = View.GONE
+        souvenirBtn.setText("TAKE THE PHOTO")
+        souvenirBtn.setOnClickListener { takePhoto() }
+    }
+
     fun checkPermission(permission: String): Boolean {
         if (ContextCompat.checkSelfPermission(
                 this,
@@ -340,6 +404,44 @@ class CameraActivity : BaseActivity() {
         }
     }
 
+    private fun takePhoto(){
+        placeInfoView.visibility = View.GONE
+        imageCapture.takePicture(
+            ContextCompat.getMainExecutor(this),
+            object : ImageCapture.OnImageCapturedCallback() {
+                override fun onCaptureSuccess(image: ImageProxy) {
+                    Log.i("CameraActivity", "Photo captured successfully! Image: ${image}")
+
+                    // imageProxy mantiene rotazione del sensore con cui immagine è acquisita
+                    // necessario renderla bitmap e ruotarla
+                    val rotatedBitmap = imageProxyToBitmap(image)
+                    cameraView.foreground = android.graphics.drawable.BitmapDrawable(resources, rotatedBitmap)
+
+                    Toast.makeText(baseContext, "Photo taken!", Toast.LENGTH_SHORT).show()
+
+                    image.close()
+                    confirmSouvenirBtn.visibility = View.VISIBLE
+                    discardSouvenirBtn.visibility = View.VISIBLE
+                    souvenirBtn.visibility = View.GONE
+
+                    confirmSouvenirBtn.setOnClickListener {
+                        //TODO: discutere su gestione foto
+                        // e relativo invio a DB
+                    }
+
+                    discardSouvenirBtn.setOnClickListener {
+                        confirmSouvenirBtn.visibility = View.GONE
+                        discardSouvenirBtn.visibility = View.GONE
+                        souvenirBtn.visibility = View.VISIBLE
+                        cameraView.foreground = null
+                        updateCamera()
+                    }
+
+            }
+        })
+        Log.i("CameraActivity", "I am here!!")
+    }
+
     private fun startLocationUpdates() {
         if(checkPermission(LOCATION_PERMISSION)) {
             try {
@@ -352,6 +454,23 @@ class CameraActivity : BaseActivity() {
             } catch (e: SecurityException) {
                 Log.e("LocationActivity", "Error starting location updates", e)
             }
+        }
+    }
+
+    private fun imageProxyToBitmap(image: ImageProxy): Bitmap {
+        val buffer = image.planes[0].buffer
+        val bytes = ByteArray(buffer.remaining())
+        buffer.get(bytes)
+        val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+
+        // Applica la rotazione fisica al bitmap
+        val rotationDegrees = image.imageInfo.rotationDegrees
+        return if (rotationDegrees != 0) {
+            val matrix = Matrix()
+            matrix.postRotate(rotationDegrees.toFloat())
+            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+        } else {
+            bitmap
         }
     }
 
