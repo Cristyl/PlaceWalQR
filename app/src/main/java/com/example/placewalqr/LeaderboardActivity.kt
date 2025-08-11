@@ -29,16 +29,22 @@ class LeaderboardActivity : BaseActivity() {
     }
 
     private fun fetchLeaderboard() {
+        val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val nickname = sharedPreferences.getString("nickname", null)
+
+        if (nickname == null) {
+            showToast("Utente non loggato")
+            return
+        }
+
         lifecycleScope.launch {
             try {
-                val response = RetrofitInstance.apiService.getLeaderboard()
+                val response = RetrofitInstance.apiService.getLeaderboard(nickname)
                 if (response.isSuccessful && response.body() != null) {
                     val leaderboardData = response.body()!!
 
-                    // Assumiamo che l'ultimo elemento sia sempre l'utente corrente
                     val currentUser = leaderboardData.last()
 
-                    // Mostro info utente corrente sotto la lista
                     currentUserTextView.text = getString(
                         R.string.current_user_info,
                         currentUser.rank,
@@ -46,7 +52,6 @@ class LeaderboardActivity : BaseActivity() {
                         currentUser.score
                     )
 
-                    // Setto l'adapter con tutta la lista (top 10 + utente)
                     adapter = LeaderboardAdapter(leaderboardData)
                     leaderboardRecyclerView.adapter = adapter
 
@@ -60,6 +65,7 @@ class LeaderboardActivity : BaseActivity() {
             }
         }
     }
+
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()

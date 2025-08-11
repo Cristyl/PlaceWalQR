@@ -1,6 +1,5 @@
 package com.example.placewalqr
 
-import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -15,7 +14,7 @@ interface ApiService {
 
     // Nuovo endpoint per la leaderboard
     @GET("api/getLeaderboard")
-    suspend fun getLeaderboard(): Response<List<LeaderboardEntry>>
+    suspend fun getLeaderboard(@Query("user_nickname") nickname: String): Response<List<LeaderboardEntry>>
 
     @POST("api/login")
     suspend fun login(@Body request: LoginRequest): Response<User>
