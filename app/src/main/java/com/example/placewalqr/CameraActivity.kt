@@ -259,7 +259,7 @@ class CameraActivity : BaseActivity() {
     private fun visitPlaceById() {
         isProcessingEnabled = false
         val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
-        val userEmail = sharedPreferences.getString("email", "").toString()
+        val userId = sharedPreferences.getString("id", "0")!!.toInt()
 
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val current = LocalDateTime.now().format(formatter).toString()
@@ -268,7 +268,7 @@ class CameraActivity : BaseActivity() {
 
         lifecycleScope.launch {
             try{
-                val visitPlaceRequest = VisitPlaceRequest(lastRawValue.toInt(), userEmail, current)
+                val visitPlaceRequest = VisitPlaceRequest(lastRawValue.toInt(), userId, current)
                 val response = RetrofitInstance.apiService.visitPlaceById(visitPlaceRequest)
 
                 if(response.isSuccessful && response.body() != null){
@@ -285,16 +285,17 @@ class CameraActivity : BaseActivity() {
                             Toast.makeText(baseContext, "You already saw this place!", Toast.LENGTH_SHORT).show()
                         }
                     }
-                    runOnUiThread {
-                        val info = response.body()
-                        placeView.text = info?.name
-                        placeInfoView.text = info?.information
-                        placeInfoView.visibility = View.VISIBLE
-                        cameraView.visibility = View.GONE
-                        visitBtn.visibility = View.GONE
-                    }
+                    Log.i("CameraActivity", "Before setting UI elements")
+                    placeView.text = info?.name
+                    placeInfoView.text = info?.information
+                    placeInfoView.visibility = View.VISIBLE
+                    cameraView.visibility = View.GONE
+                    visitBtn.visibility = View.GONE
+                    Log.i("CameraActivity", "UI elements set, stopping camera and location")
+
                     stopCamera()
                     stopLocationUpdates()
+                    Log.i("CameraActivity", "Camera and location stopped - should stay on this screen")
 
                 } else {
                     Log.w("CameraActivity", "Bad request, response.body: ${response.code()}")
