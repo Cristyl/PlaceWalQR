@@ -2,6 +2,7 @@ package com.example.placewalqr
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -41,9 +42,11 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import retrofit2.HttpException
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Base64
 import java.util.concurrent.TimeUnit
 import kotlin.math.round
 
@@ -276,6 +279,7 @@ class CameraActivity : BaseActivity() {
 
                     if(response.code() == 201){
                         Toast.makeText(baseContext, "Congratulation! You visited this place!", Toast.LENGTH_SHORT).show()
+                        souvenirBtn.visibility = View.VISIBLE
                     } else {
                         if(response.code() == 200) {
                             Toast.makeText(baseContext, "You already saw this place!", Toast.LENGTH_SHORT).show()
@@ -286,12 +290,11 @@ class CameraActivity : BaseActivity() {
                         placeView.text = info?.name
                         placeInfoView.text = info?.information
                         placeInfoView.visibility = View.VISIBLE
+                        cameraView.visibility = View.GONE
+                        visitBtn.visibility = View.GONE
                     }
                     stopCamera()
                     stopLocationUpdates()
-                    cameraView.visibility = View.GONE
-                    visitBtn.visibility = View.GONE
-                    souvenirBtn.visibility = View.VISIBLE
 
                 } else {
                     Log.w("CameraActivity", "Bad request, response.body: ${response.code()}")
@@ -300,10 +303,53 @@ class CameraActivity : BaseActivity() {
                     }
                 }
             } catch (e: IOException){
-                Log.e("RegisterActivity", "IO Exception: ${e}")
+                Log.e("CameraActivity", "IO Exception: ${e}")
                 Toast.makeText(baseContext, "Connection error", Toast.LENGTH_SHORT).show()
             } catch (e: HttpException) {
-                Log.e("MainActivity", "HTTP Exception: ${e.message}")
+                Log.e("CameraActivity", "HTTP Exception: ${e.message}")
+                Toast.makeText(baseContext, "Server error", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun sendTakenSouvenir(imageString: String) {
+        val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val userId = sharedPreferences.getString("id", "")
+
+        if(userId == ""){
+            Log.i("CameraActivity", "Invalid user!")
+            return
+        }
+
+        lifecycleScope.launch {
+            try {
+                val souvenirRequest = SouvenirRequest(lastRawValue.toInt(), userId!!.toInt(), imageString)
+                val response = RetrofitInstance.apiService.saveSouvenir(souvenirRequest)
+
+                if (response.isSuccessful && response.body() != null) {
+                    val info = response.body()!!
+                    Log.i("CameraActivity", "info.status: ${info.status} - response.code(): ${response.code()}")
+                    if (response.code() == 201) {
+                        Toast.makeText(baseContext, "Photo saved!", Toast.LENGTH_SHORT).show()
+                        confirmSouvenirBtn.visibility = View.GONE
+                        discardSouvenirBtn.visibility = View.GONE
+                        souvenirBtn.visibility = View.VISIBLE
+
+                        val intent = Intent(this@CameraActivity, HomepageActivity::class.java)
+                        startActivity(intent)
+                    }
+                } else {
+                    Toast.makeText(
+                        baseContext,
+                        "Error occurred: photo not saved!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            } catch (e: IOException) {
+                Log.e("CameraActivity", "IO Exception: ${e}")
+                Toast.makeText(baseContext, "Connection error", Toast.LENGTH_SHORT).show()
+            } catch (e: HttpException) {
+                Log.e("CameraActivity", "HTTP Exception: ${e.message}")
                 Toast.makeText(baseContext, "Server error", Toast.LENGTH_SHORT).show()
             }
         }
@@ -416,18 +462,16 @@ class CameraActivity : BaseActivity() {
                     // necessario renderla bitmap e ruotarla
                     val rotatedBitmap = imageProxyToBitmap(image)
                     cameraView.foreground = android.graphics.drawable.BitmapDrawable(resources, rotatedBitmap)
+                    val imageString = bitmapToBase64(rotatedBitmap)
 
+                    Log.i("CameraActivity", "imageString: ${imageString}")
                     Toast.makeText(baseContext, "Photo taken!", Toast.LENGTH_SHORT).show()
 
                     image.close()
+                    confirmSouvenirBtn.setOnClickListener { sendTakenSouvenir(imageString) }
                     confirmSouvenirBtn.visibility = View.VISIBLE
                     discardSouvenirBtn.visibility = View.VISIBLE
                     souvenirBtn.visibility = View.GONE
-
-                    confirmSouvenirBtn.setOnClickListener {
-                        //TODO: discutere su gestione foto
-                        // e relativo invio a DB
-                    }
 
                     discardSouvenirBtn.setOnClickListener {
                         confirmSouvenirBtn.visibility = View.GONE
@@ -472,6 +516,13 @@ class CameraActivity : BaseActivity() {
         } else {
             bitmap
         }
+    }
+
+    private fun bitmapToBase64(bitmap: Bitmap): String{
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+        val byteArray = byteArrayOutputStream.toByteArray()
+        return Base64.getEncoder().encodeToString(byteArray)
     }
 
     private fun stopLocationUpdates() {

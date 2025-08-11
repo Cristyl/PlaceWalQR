@@ -16,15 +16,22 @@ interface ApiService {
     @GET("api/getLeaderboard")
     suspend fun getLeaderboard(@Query("user_nickname") nickname: String): Response<List<LeaderboardEntry>>
 
+    // endpoint per login
     @POST("api/login")
     suspend fun login(@Body request: LoginRequest): Response<User>
 
+    // endpoint per regitrazione
     @POST("api/register")
     suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
 
+    // endpoint per visitare luogo
     @POST("api/visitPlaceById")
     //suspend fun visitPlaceById(@Query("place_id") place_id: Int, @Query("user_email") user_email: String, @Query("date_of_visit") date_of_visit: String): Response<VisitPlaceResponse>
     suspend fun visitPlaceById(@Body request: VisitPlaceRequest): Response<VisitPlaceResponse>
+
+    // endpoint per salvare foto ricordo
+    @POST("api/saveSouvenir")
+    suspend fun saveSouvenir(@Body request: SouvenirRequest): Response<SouvenirResponse>
 
     @GET("api/findUserByEmail")
     suspend fun findUserByEmail()

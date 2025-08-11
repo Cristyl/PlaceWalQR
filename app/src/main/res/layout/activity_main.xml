@@ -70,37 +70,37 @@
             android:textAppearance="?attr/textAppearanceBody2"
             android:textColor="?attr/colorPrimary" />
 
-        <TextView
-            android:id="@+id/debugging_buttons_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Debugging purposes only buttons - TO REMOVE"
-            android:layout_marginTop="16dp"
-            android:textAppearance="?attr/textAppearanceBody2"/>
+<!--        <TextView-->
+<!--            android:id="@+id/debugging_buttons_label"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Debugging purposes only buttons - TO REMOVE"-->
+<!--            android:layout_marginTop="16dp"-->
+<!--            android:textAppearance="?attr/textAppearanceBody2"/>-->
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/camera_btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/camera_btn_str"
-            android:layout_marginTop="16dp"
-            style="?attr/materialButtonOutlinedStyle" />
+<!--        <com.google.android.material.button.MaterialButton-->
+<!--            android:id="@+id/camera_btn"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="@string/camera_btn_str"-->
+<!--            android:layout_marginTop="16dp"-->
+<!--            style="?attr/materialButtonOutlinedStyle" />-->
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/homepage_btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/home_btn_str"
-            android:layout_marginTop="8dp"
-            style="?attr/materialButtonOutlinedStyle" />
+<!--        <com.google.android.material.button.MaterialButton-->
+<!--            android:id="@+id/homepage_btn"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="@string/home_btn_str"-->
+<!--            android:layout_marginTop="8dp"-->
+<!--            style="?attr/materialButtonOutlinedStyle" />-->
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/map_btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/map_btn_str"
-            android:layout_marginTop="8dp"
-            style="?attr/materialButtonOutlinedStyle" />
+<!--        <com.google.android.material.button.MaterialButton-->
+<!--            android:id="@+id/map_btn"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="@string/map_btn_str"-->
+<!--            android:layout_marginTop="8dp"-->
+<!--            style="?attr/materialButtonOutlinedStyle" />-->
 
     </LinearLayout>
 </ScrollView>

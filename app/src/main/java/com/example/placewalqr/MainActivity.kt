@@ -45,9 +45,9 @@ class MainActivity : ComponentActivity() {
         forgotPwd = findViewById(R.id.forgot_pwd_text)
         registerText = findViewById(R.id.register_text)
         loginBtn = findViewById(R.id.btnLogin)
-        cameraBtn = findViewById(R.id.camera_btn)
-        homepageBtn=findViewById(R.id.homepage_btn)
-        mapBtn=findViewById(R.id.map_btn)
+//        cameraBtn = findViewById(R.id.camera_btn)
+//        homepageBtn=findViewById(R.id.homepage_btn)
+//        mapBtn=findViewById(R.id.map_btn)
 
         forgotPwd.setOnClickListener {
             //
@@ -62,20 +62,20 @@ class MainActivity : ComponentActivity() {
             startActivity(intent)
         }
 
-        cameraBtn.setOnClickListener {
-            var intent = Intent(this, CameraActivity::class.java)
-            startActivity(intent)
-        }
-
-        homepageBtn.setOnClickListener {
-            var intent = Intent(this, HomepageActivity::class.java)
-            startActivity(intent)
-        }
-
-        mapBtn.setOnClickListener {
-            var intent = Intent(this, MapsActivity::class.java)
-            startActivity(intent)
-        }
+//        cameraBtn.setOnClickListener {
+//            var intent = Intent(this, CameraActivity::class.java)
+//            startActivity(intent)
+//        }
+//
+//        homepageBtn.setOnClickListener {
+//            var intent = Intent(this, HomepageActivity::class.java)
+//            startActivity(intent)
+//        }
+//
+//        mapBtn.setOnClickListener {
+//            var intent = Intent(this, MapsActivity::class.java)
+//            startActivity(intent)
+//        }
 
     }
 
