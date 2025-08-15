@@ -121,4 +121,6 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
 
+    <string name="fab_content_description">My location</string>
+
 </resources>

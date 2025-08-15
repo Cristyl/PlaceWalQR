@@ -5,11 +5,19 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.Manifest
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.location.Location
 import android.os.Looper
+import android.util.Log
+import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
+import androidx.camera.core.Logger
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.VIEW_MODEL_STORE_OWNER_KEY
 import androidx.lifecycle.lifecycleScope
 
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -56,43 +64,9 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback {
         createLocationRequest()
         createLocationCallback()
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-
-        val sharedPreferences=getSharedPreferences("UserPrefs", MODE_PRIVATE)
-        val id=sharedPreferences.getString("id", "0").toString().toInt()
-        lifecycleScope.launch{
-            try {
-                val response=RetrofitInstance.apiService.findVisitedPlaceById(id)
-                runOnUiThread {
-                    val places=response.body()
-                    places?.forEach { place ->
-                        val placeLatLng= LatLng(place.latitude, place.longitude)
-                        if (place.visited){
-                            mMap.addMarker(
-                                MarkerOptions()
-                                    .position(placeLatLng)
-                                    .title(place.name)
-                                    .snippet("Lat: ${place.latitude}, Lng: ${place.longitude}")
-                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                            )
-                        }else{
-                            mMap.addMarker(
-                                MarkerOptions()
-                                    .position(placeLatLng)
-                                    .title(place.name)
-                                    .snippet("Lat: ${place.latitude}, Lng: ${place.longitude}")
-                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
-                            )
-                        }
-                    }
-                }
-            }catch (e: Exception){
-
-            }
-        }
 
         //FAB configuration for centering on current position
         //binding.fabMyLocation.setOnClickListener{
@@ -110,6 +84,7 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback {
      * installed Google Play services and returned to the app.
      */
     override fun onMapReady(googleMap: GoogleMap) {
+        Log.d("MapReady", "Map is ready!")
         mMap = googleMap
 
         // Add a marker in Sydney and move the camera
@@ -117,18 +92,67 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback {
         // mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
         // mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
 
+        Log.d("MapReady", "About to load place markers")
+        setupInfoAdapter()
+
         //map configuration
         mMap.uiSettings.isZoomControlsEnabled=true
         mMap.uiSettings.isMyLocationButtonEnabled=true
         mMap.uiSettings.isCompassEnabled=true
 
+        loadPlaceMarkers()
+
         //check localization permission
         if(checkLocationPermission()){
+            Log.d("MapReady", "Location permission granted, enabling location")
             enableMyLocation()
-        }else{
+        } else {
+            Log.d("MapReady", "Requesting location permission")
             requestLocationPermission()
-
         }
+
+    }
+
+    private fun setupInfoAdapter(){
+        mMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter{
+            override fun getInfoContents(marker: Marker): View? {
+                return null
+            }
+
+            override fun getInfoWindow(marker: Marker): View? {
+                val infoView=layoutInflater.inflate(R.layout.custom_info_window, null)
+
+                val titleTextView = infoView.findViewById<TextView>(R.id.title_marker)
+                val descriptionView= infoView.findViewById<TextView>(R.id.description_marker)
+                val photoImageView=infoView.findViewById<ImageView>(R.id.photo_marker)
+
+                val placeData=marker.tag as? VisitedPlaceResponse
+                if(placeData!=null){
+                    titleTextView.text=placeData.name
+                    descriptionView.text=placeData.information
+
+                    val imageBytes=placeData.getImageBytes()
+                    if (imageBytes!=null && imageBytes.isNotEmpty()){
+                        val bitmap= resizeBitmap(imageBytes, 150, 150)
+                        if(bitmap!=null){
+                            photoImageView.setImageBitmap(bitmap)
+                            photoImageView.visibility= View.VISIBLE
+                        }else{
+                            photoImageView.visibility=View.GONE
+                            Log.w("InfoWindow", "Fail to load image ${placeData.name}")
+                        }
+                    }else{
+                        photoImageView.visibility=View.GONE
+                    }
+                }else{
+                    titleTextView.text=marker.title
+                    descriptionView.text=marker.title
+                    photoImageView.visibility= View.GONE
+                }
+
+                return infoView
+            }
+        })
     }
 
     private fun createLocationRequest(){
@@ -187,7 +211,7 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback {
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             if(location!=null){
                 val currentLatLng= LatLng(location.latitude, location.longitude)
-                mMap.clear()
+                currentLocationMarker?.remove()
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, DEFAULT_ZOOM))
                 updateLocationOnMap(location)
             }else{
@@ -207,7 +231,7 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback {
                 override fun onLocationResult(locationRequest: LocationResult) {
                     locationRequest.lastLocation?.let{location ->
                         val currentLatLng= LatLng(location.latitude, location.longitude)
-                        mMap.clear()
+                        currentLocationMarker?.remove()
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, DEFAULT_ZOOM))
                         updateLocationOnMap(location)
                         fusedLocationClient.removeLocationUpdates(this)
@@ -222,6 +246,7 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback {
         val currentLatLng= LatLng(location.latitude, location.longitude)
         val latFormatted = "%.6f".format(location.latitude)
         val lngFormatted = "%.6f".format(location.longitude)
+        Log.d("Location", "Current location: $latFormatted, $lngFormatted")
         //remove previous marker
         currentLocationMarker?.remove()
 
@@ -233,6 +258,13 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback {
                 .snippet("Lat: $latFormatted, Lng: $lngFormatted")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
         )
+
+        Log.d("Location", "Location marker added: ${currentLocationMarker != null}")
+        Log.d("Location", "Marker position: ${currentLocationMarker?.position}")
+
+        val currentCamera = mMap.cameraPosition
+        Log.d("Camera", "Camera target: ${currentCamera.target}")
+        Log.d("Camera", "Camera zoom: ${currentCamera.zoom}")
     }
 
     @SuppressLint("MissingPermission")
@@ -247,12 +279,99 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback {
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
+    private fun loadPlaceMarkers() {
+        Log.d("Markers", "Starting to load place markers")
+
+        val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val id = sharedPreferences.getString("id", "0").toString().toInt()
+
+        Log.d("Markers", "User ID: $id")
+
+        lifecycleScope.launch {
+            try {
+                Log.d("Markers", "Making API call...")
+                val response = RetrofitInstance.apiService.findVisitedPlaceById(id)
+
+                Log.d("Markers", "API Response code: ${response.code()}")
+                Log.d("Markers", "API Response successful: ${response.isSuccessful}")
+
+                runOnUiThread {
+                    val places = response.body()
+                    Log.d("Markers", "Places received: ${places?.size ?: 0}")
+
+                    places?.forEach { place ->
+                        Log.d("Markers", "Adding marker for: ${place.name} at ${place.latitude}, ${place.longitude}")
+                        addPlaceMarker(place)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("Markers", "Error loading places: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun addPlaceMarker(place: VisitedPlaceResponse) {
+        val placeLatLng = LatLng(place.latitude, place.longitude)
+        Log.d("PlaceMarker", "Adding place marker at: ${place.latitude}, ${place.longitude}")
+
+        val marker = if (place.visited) {
+            mMap.addMarker(
+                MarkerOptions()
+                    .position(placeLatLng)
+                    .title(place.name)
+                    .snippet("Lat: ${place.latitude}, Lng: ${place.longitude}")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+            )
+        } else {
+            mMap.addMarker(
+                MarkerOptions()
+                    .position(placeLatLng)
+                    .title(place.name)
+                    .snippet("Lat: ${place.latitude}, Lng: ${place.longitude}")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+            )
+        }
+
+        marker?.tag = place
+        Log.d("PlaceMarker", "Marker added successfully for ${place.name}")
+        Log.d("PlaceMarker", "Place marker added: ${marker != null}")
+        Log.d("PlaceMarker", "Place marker position: ${marker?.position}")
+    }
+
     //keep for manually centering the current position
     private fun centerOnCurrentLocation(){
         if(!checkLocationPermission()){
             requestLocationPermission()
             return
         }
+    }
+
+    private fun resizeBitmap(byteArray: ByteArray, maxWidth: Int, maxHeight: Int): Bitmap?{
+        return  try {
+            val options= BitmapFactory.Options().apply {
+                inJustDecodeBounds=true
+            }
+            BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size, options)
+
+            val scaleFactor=minOf(options.outWidth/maxWidth, options.outHeight/maxHeight).coerceAtLeast(1)
+            val finalOptions= BitmapFactory.Options().apply {
+                inSampleSize=scaleFactor
+                inJustDecodeBounds=false
+            }
+
+            BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size, finalOptions)
+
+        }catch (e: Exception){
+            Log.e("Bitmap resize", "Error: ${e.message}")
+            null
+        }
+    }
+
+    private fun isValidImageData(imageData: ByteArray?): Boolean {
+        return imageData != null &&
+                imageData.isNotEmpty() &&
+                imageData.size > 100 // Minimo 100 bytes per un'immagine valida
     }
 
     override fun onResume() {
