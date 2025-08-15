@@ -1,8 +1,11 @@
 package com.example.placewalqr
 
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
@@ -19,6 +22,7 @@ class HomepageActivity : BaseActivity(){
     private lateinit var points_label: TextView
     private lateinit var seesights_label: TextView
     private lateinit var lastplace_label: TextView
+    private lateinit var photoImageView: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?){
         super.onCreate(savedInstanceState)
@@ -32,6 +36,7 @@ class HomepageActivity : BaseActivity(){
         seesights_label = findViewById<TextView>(R.id.seesights)
         points_label= findViewById<TextView>(R.id.points)
         lastplace_label= findViewById<TextView>(R.id.lastplace)
+        photoImageView=findViewById<ImageView>(R.id.photo_visited)
     }
 
     private fun loadHomePage(){
@@ -60,6 +65,17 @@ class HomepageActivity : BaseActivity(){
                         last_place=body?.name?:"None"
                         val lastPlaceText=lastplace_label.text.toString() + " " + last_place
                         lastplace_label.setText(lastPlaceText)
+
+                        val imageBytes=body?.getImageBytes()
+                        if(imageBytes!=null && imageBytes.isNotEmpty()){
+                            val bitmap= BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                            if(bitmap!=null){
+                                photoImageView.setImageBitmap(bitmap)
+                                photoImageView.visibility= View.VISIBLE
+                            }else{
+                                photoImageView.visibility= View.INVISIBLE
+                            }
+                        }
                     }
                 }
             }catch (e: Exception){

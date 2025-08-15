@@ -61,5 +61,14 @@
             android:textAppearance="?attr/textAppearanceBody1"
             android:text="@string/lastplace_home"
             android:layout_marginBottom="16dp"/>
+
+        <ImageView
+            android:id="@+id/photo_visited"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:scaleType="centerCrop"
+            android:background="@android:color/darker_gray"
+            android:layout_marginBottom="8dp"
+            android:contentDescription="@string/photoHomepageDescription" />
     </LinearLayout>
 </ScrollView>
