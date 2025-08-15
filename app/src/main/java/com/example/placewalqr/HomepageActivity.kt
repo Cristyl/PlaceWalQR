@@ -29,9 +29,9 @@ class HomepageActivity : BaseActivity(){
         val welcome_text=welcome_label.text.toString() +" "+ user
         welcome_label.setText(welcome_text)
 
-        seesights_label = findViewById<TextView>(R.id.seesights_text)
-        points_label= findViewById<TextView>(R.id.points_text)
-        lastplace_label= findViewById<TextView>(R.id.lastplace_text)
+        seesights_label = findViewById<TextView>(R.id.seesights)
+        points_label= findViewById<TextView>(R.id.points)
+        lastplace_label= findViewById<TextView>(R.id.lastplace)
     }
 
     private fun loadHomePage(){
@@ -48,15 +48,18 @@ class HomepageActivity : BaseActivity(){
                     if(responsePoint.code()==200){
                         val body=responsePoint.body()
                         points= body?.points ?: 0
-                        points_label.setText(points.toString())
+                        val pointsText=points_label.text.toString() + " " + points.toString()
+                        points_label.setText(pointsText)
                         see_sights=body?.count ?: 0
-                        seesights_label.setText(see_sights.toString())
+                        val seeSightText=seesights_label.text.toString() + " " + see_sights.toString()
+                        seesights_label.setText(seeSightText)
                     }
 
                     if(responsePlace.code()==200){
                         val body=responsePlace.body()
                         last_place=body?.name?:"None"
-                        lastplace_label.setText(last_place)
+                        val lastPlaceText=lastplace_label.text.toString() + " " + last_place
+                        lastplace_label.setText(lastPlaceText)
                     }
                 }
             }catch (e: Exception){
