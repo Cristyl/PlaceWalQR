@@ -26,8 +26,19 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.placewalqr.ui.theme.PlaceWalQRTheme
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -78,6 +89,10 @@ class CameraActivity : BaseActivity() {
 
     // definizione dei permessi per accedere alla fotocamera, vedi AndroidManifest per dettagli
     private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
+
+    private lateinit var composeProgressIndicator: ComposeView
+    private var isLoadingState by mutableStateOf(false)
+
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -131,6 +146,13 @@ class CameraActivity : BaseActivity() {
         souvenirBtn.visibility = View.GONE
         confirmSouvenirBtn.visibility = View.GONE
         discardSouvenirBtn.visibility = View.GONE
+
+        composeProgressIndicator = findViewById(R.id.compose_progress_indicator)
+        composeProgressIndicator.setContent {
+            PlaceWalQRTheme {
+                IndeterminateCircularIndicator(isLoading = isLoadingState)
+            }
+        }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
 
@@ -323,11 +345,15 @@ class CameraActivity : BaseActivity() {
         }
 
         lifecycleScope.launch {
+            isLoadingState = true
+            composeProgressIndicator.visibility = View.VISIBLE
+
             try {
                 val souvenirRequest = SouvenirRequest(lastRawValue.toInt(), userId!!.toInt(), imageString)
                 val response = RetrofitInstance.apiService.saveSouvenir(souvenirRequest)
 
                 if (response.isSuccessful && response.body() != null) {
+
                     val info = response.body()!!
                     Log.i("CameraActivity", "info.status: ${info.status} - response.code(): ${response.code()}")
                     if (response.code() == 201) {
@@ -352,6 +378,9 @@ class CameraActivity : BaseActivity() {
             } catch (e: HttpException) {
                 Log.e("CameraActivity", "HTTP Exception: ${e.message}")
                 Toast.makeText(baseContext, "Server error", Toast.LENGTH_SHORT).show()
+            } finally {
+                isLoadingState = false
+                composeProgressIndicator.visibility = View.GONE
             }
         }
     }
@@ -529,6 +558,17 @@ class CameraActivity : BaseActivity() {
     private fun stopLocationUpdates() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
         Log.i("LocationActivity", "Location updates stopped")
+    }
+
+    @Composable
+    fun IndeterminateCircularIndicator(isLoading: Boolean) {
+        if (!isLoading) return
+
+        CircularProgressIndicator(
+            modifier = Modifier.width(16.dp),
+            color = MaterialTheme.colorScheme.secondary,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+        )
     }
 
     // richiedo i permessi, tramite popup, nel caso in cui non siano stati grantati

@@ -101,6 +101,12 @@
 <!--            android:text="@string/map_btn_str"-->
 <!--            android:layout_marginTop="8dp"-->
 <!--            style="?attr/materialButtonOutlinedStyle" />-->
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/compose_progress_indicator"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="20dp"
+            android:visibility="gone" />
 
     </LinearLayout>
 </ScrollView>
