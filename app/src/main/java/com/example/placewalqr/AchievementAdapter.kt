@@ -29,15 +29,8 @@ class AchievementAdapter(private val placeList: List<Place>) :
 
         val base64String = place.imageBase64
 
-        // Se la stringa ha prefisso tipo "data:image/png;base64," rimuovilo
-        val cleanBase64 = if (base64String.contains(",")) {
-            base64String.substringAfter(",")
-        } else {
-            base64String
-        }
-
         // Decodifica Base64 in byte[]
-        val decodedBytes = Base64.decode(cleanBase64, Base64.DEFAULT)
+        val decodedBytes = Base64.decode(base64String, Base64.DEFAULT)
 
         // Crea bitmap dai byte decodificati
         val bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)

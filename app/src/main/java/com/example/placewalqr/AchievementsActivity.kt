@@ -16,11 +16,11 @@ class AchievementsActivity : BaseActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
-        val nickname = sharedPreferences.getString("nickname", null)
+        val id = sharedPreferences.getString("id", null)
 
-        if (nickname != null) {
+        if (id != null) {
             lifecycleScope.launch {
-                val response = RetrofitInstance.apiService.getPlacesByUser(nickname)
+                val response = RetrofitInstance.apiService.getPlacesByUser(id)
                 if (response.isSuccessful) {
                     val placesList = response.body() ?: emptyList()
                     recyclerView.adapter = AchievementAdapter(placesList)

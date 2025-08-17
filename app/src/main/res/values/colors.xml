@@ -8,6 +8,9 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="navbar_color">#FFFFFFFF</color>
-    <color name="navbar_text_color">#000000</color>
+<!--    <color name="navbar_color">#FFFFFFFF</color>-->
+<!--    <color name="navbar_text_color">#000000</color>-->
+
+    <color name="colorPrimary">#FF6200EE</color>
+    <color name="colorGray">#FF888888</color>
 </resources>

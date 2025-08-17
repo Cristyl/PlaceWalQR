@@ -1,11 +1,11 @@
 package com.example.placewalqr
+
 import android.content.Intent
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import android.widget.RelativeLayout
-
 
 abstract class BaseActivity : AppCompatActivity() {
 
@@ -23,32 +23,36 @@ abstract class BaseActivity : AppCompatActivity() {
         val btnCamera = findViewById<ImageButton>(R.id.btn_camera)
 
         bottomNavigationView.setOnItemSelectedListener { item ->
-            when(item.itemId) {
+            when (item.itemId) {
                 R.id.nav_home -> {
                     if (this !is HomepageActivity) {
-                        startActivity(Intent(this, HomepageActivity::class.java))
-                        finish()
+                        val intent = Intent(this, HomepageActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                        startActivity(intent)
                     }
                     true
                 }
                 R.id.nav_map -> {
                     if (this !is MapsActivity) {
-                        startActivity(Intent(this, MapsActivity::class.java))
-                        finish()
+                        val intent = Intent(this, MapsActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                        startActivity(intent)
                     }
                     true
                 }
                 R.id.nav_achievements -> {
                     if (this !is AchievementsActivity) {
-                        startActivity(Intent(this, AchievementsActivity::class.java))
-                        finish()
+                        val intent = Intent(this, AchievementsActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                        startActivity(intent)
                     }
                     true
                 }
                 R.id.nav_leaderboard -> {
                     if (this !is LeaderboardActivity) {
-                        startActivity(Intent(this, LeaderboardActivity::class.java))
-                        finish()
+                        val intent = Intent(this, LeaderboardActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                        startActivity(intent)
                     }
                     true
                 }
@@ -60,7 +64,10 @@ abstract class BaseActivity : AppCompatActivity() {
             startActivity(Intent(this, CameraActivity::class.java))
         }
 
-        highlightCurrentMenuItem(bottomNavigationView)
+        // Forza il focus del tab dopo che la view è stata renderizzata
+        bottomNavigationView.post {
+            highlightCurrentMenuItem(bottomNavigationView)
+        }
     }
 
     private fun highlightCurrentMenuItem(bottomNavigationView: BottomNavigationView) {

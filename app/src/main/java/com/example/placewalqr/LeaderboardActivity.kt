@@ -21,7 +21,6 @@ class LeaderboardActivity : BaseActivity() {
         setContentView(R.layout.leaderboard_activity)
 
         leaderboardRecyclerView = findViewById(R.id.leaderboard_recycler_view)
-        currentUserTextView = findViewById(R.id.current_user_rank)
 
         leaderboardRecyclerView.layoutManager = LinearLayoutManager(this)
 
@@ -43,14 +42,6 @@ class LeaderboardActivity : BaseActivity() {
                 if (response.isSuccessful && response.body() != null) {
                     val leaderboardData = response.body()!!
 
-                    val currentUser = leaderboardData.last()
-
-                    currentUserTextView.text = getString(
-                        R.string.current_user_info,
-                        currentUser.rank,
-                        currentUser.username,
-                        currentUser.score
-                    )
 
                     adapter = LeaderboardAdapter(leaderboardData)
                     leaderboardRecyclerView.adapter = adapter

@@ -24,9 +24,9 @@ class LeaderboardAdapter(private val entries: List<LeaderboardEntry>) :
     override fun onBindViewHolder(holder: LeaderboardViewHolder, position: Int) {
         val entry = entries[position]
         val context = holder.itemView.context
-        holder.rankText.text = context.getString(R.string.rank_format, entry.rank)
-        holder.usernameText.text = entry.username
-        holder.scoreText.text = context.getString(R.string.score_format, entry.score)
+        holder.rankText.text = context.getString(R.string.rank_format, entry.position)
+        holder.usernameText.text = entry.nickname
+        holder.scoreText.text = context.getString(R.string.score_format, entry.total_points)
     }
 
     override fun getItemCount(): Int = entries.size
