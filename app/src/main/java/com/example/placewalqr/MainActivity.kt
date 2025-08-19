@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -40,6 +41,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var emailField: TextView
     private lateinit var pwdField: TextView
     private lateinit var loginBtn: Button
+    private lateinit var rememberMeSwitch: Switch
     private lateinit var forgotPwd: TextView
     private lateinit var registerText: TextView
 
@@ -55,6 +57,7 @@ class MainActivity : ComponentActivity() {
         emailField = findViewById(R.id.email_field)
         pwdField = findViewById(R.id.pwd_field)
         forgotPwd = findViewById(R.id.forgot_pwd_text)
+        rememberMeSwitch = findViewById(R.id.remember_me_switch)
         registerText = findViewById(R.id.register_text)
         loginBtn = findViewById(R.id.btnLogin)
         composeProgressIndicator = findViewById(R.id.compose_progress_indicator)
@@ -65,8 +68,21 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        rememberMeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            getSharedPreferences("UserPrefs", MODE_PRIVATE).edit().putBoolean("remember_me", isChecked).apply()
+        }
+
+        var preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+
+        if(preferences.getBoolean("remember_me", true)) {
+            rememberMeSwitch.setChecked(true)
+            emailField.setText(preferences.getString("email",""))
+            pwdField.setText(preferences.getString("password", ""))
+        }
+
         // cancello tutti i dati usati nella sessione precedente
         getSharedPreferences("UserPrefs", MODE_PRIVATE).edit().clear().apply()
+        getSharedPreferences("UserPrefs", MODE_PRIVATE).edit().putBoolean("remember_me", true).apply()
 
         forgotPwd.setOnClickListener {
             //TODO
@@ -86,6 +102,15 @@ class MainActivity : ComponentActivity() {
     private fun remoteLogin() {
         val email = emailField.text.toString()
         val password = pwdField.text.toString()
+        val editor = getSharedPreferences("UserPrefs", MODE_PRIVATE).edit()
+
+        if(rememberMeSwitch.isChecked) {
+            editor.putString("email", email)
+            editor.putString("password", password)
+            editor.putBoolean("remember_me", true)
+        } else {
+            editor.putBoolean("remember_me", false)
+        }
 
         val loginRequest = LoginRequest(email, password)
 
@@ -101,9 +126,6 @@ class MainActivity : ComponentActivity() {
                     val userInfo = response.body()!!
 
                     // storing user information for future uses
-                    val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
-                    val editor = sharedPreferences.edit()
-
                     editor.putString("id", userInfo.id.toString())
                     editor.putString("name", userInfo.name)
                     editor.putString("surname", userInfo.surname)

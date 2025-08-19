@@ -45,6 +45,14 @@
                 android:inputType="textPassword" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <Switch
+            android:id="@+id/remember_me_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:textAlignment="center"
+            android:text="Remember me" />
+
         <TextView
             android:id="@+id/forgot_pwd_text"
             android:layout_width="wrap_content"
