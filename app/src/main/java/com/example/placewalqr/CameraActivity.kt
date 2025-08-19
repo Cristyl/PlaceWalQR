@@ -2,6 +2,7 @@ package com.example.placewalqr
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -9,7 +10,9 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -25,7 +28,6 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.placewalqr.ui.theme.PlaceWalQRTheme
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -61,7 +64,7 @@ import java.util.Base64
 import java.util.concurrent.TimeUnit
 import kotlin.math.round
 
-class CameraActivity : BaseActivity() {
+class CameraFragment : Fragment() {
 
     private lateinit var cameraView: PreviewView
     private lateinit var placeView: TextView
@@ -93,26 +96,30 @@ class CameraActivity : BaseActivity() {
     private lateinit var composeProgressIndicator: ComposeView
     private var isLoadingState by mutableStateOf(false)
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.camera_activity, container, false)
+    }
 
     @SuppressLint("ClickableViewAccessibility")
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.camera_activity)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        cameraView = findViewById(R.id.camera_view)
+        cameraView = view.findViewById(R.id.camera_view)
         cameraView.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-        // cameraView.visibility = View.VISIBLE
 
-        placeView = findViewById(R.id.place_view)
-        placeInfoView = findViewById(R.id.place_info)
+        placeView = view.findViewById(R.id.place_view)
+        placeInfoView = view.findViewById(R.id.place_info)
 
         placeInfoView.visibility = View.GONE
-        // placeView.visibility = View.GONE
 
         lastRawValue = ""
 
         // inizializzazione e avvio tracciamento posizione
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         locationRequest = LocationRequest.Builder(500L).apply{
             setPriority(Priority.PRIORITY_HIGH_ACCURACY)
             setMinUpdateIntervalMillis(1000L)
@@ -121,9 +128,9 @@ class CameraActivity : BaseActivity() {
         locationCallback = object: LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
-                Log.i("LocationActivity", "onLocationResult")
+                Log.i("LocationFragment", "onLocationResult")
                 locationResult?.locations?.forEach{ location ->
-                    Log.i("LocationActivity", " === Position: ${location.latitude} - ${location.longitude} === ")
+                    Log.i("LocationFragment", " === Position: ${location.latitude} - ${location.longitude} === ")
                     latitude = round(location.latitude * 10000) / 10000
                     longitude = round(location.longitude * 10000) / 10000
                 }
@@ -137,17 +144,17 @@ class CameraActivity : BaseActivity() {
             activityResultLauncher.launch(REQUIRED_PERMISSIONS)
         }
 
-        visitBtn = findViewById(R.id.confirmation_button)
+        visitBtn = view.findViewById(R.id.confirmation_button)
 
-        souvenirBtn = findViewById(R.id.take_souvenir_photo)
-        confirmSouvenirBtn = findViewById(R.id.confirm_souvenir_photo)
-        discardSouvenirBtn = findViewById(R.id.discard_souvenir_photo)
+        souvenirBtn = view.findViewById(R.id.take_souvenir_photo)
+        confirmSouvenirBtn = view.findViewById(R.id.confirm_souvenir_photo)
+        discardSouvenirBtn = view.findViewById(R.id.discard_souvenir_photo)
         souvenirBtn.setOnClickListener { updateCamera() }
         souvenirBtn.visibility = View.GONE
         confirmSouvenirBtn.visibility = View.GONE
         discardSouvenirBtn.visibility = View.GONE
 
-        composeProgressIndicator = findViewById(R.id.compose_progress_indicator)
+        composeProgressIndicator = view.findViewById(R.id.compose_progress_indicator)
         composeProgressIndicator.setContent {
             PlaceWalQRTheme {
                 IndeterminateCircularIndicator(isLoading = isLoadingState)
@@ -155,16 +162,15 @@ class CameraActivity : BaseActivity() {
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
-
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
-        ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
+        ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun startCamera() {
         // listenableFuture per ottenere ProcessCameraProvider come ListenableFuture dal contesto attuale
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
 
         //aggiungo un listener con runnable ed executor
         cameraProviderFuture.addListener(
@@ -214,11 +220,11 @@ class CameraActivity : BaseActivity() {
                     }
 
                 } catch (exc: Exception) {
-                    Toast.makeText(baseContext,
+                    Toast.makeText(requireContext(),
                         "Use case binding failed: ${exc.localizedMessage}",
                         Toast.LENGTH_SHORT).show()
                 }
-            }, ContextCompat.getMainExecutor(this)
+            }, ContextCompat.getMainExecutor(requireContext())
         )
     }
 
@@ -255,13 +261,13 @@ class CameraActivity : BaseActivity() {
                         val rawValue = barcode.rawValue
 
                         // Toast.makeText(this, "RawValue: ${rawValue}, ValueType: ${valueType}", Toast.LENGTH_LONG).show()
-                        Log.i("CameraActivity", "barcode: ${barcode}, rawValue: ${rawValue}")
+                        Log.i("CameraFragment", "barcode: ${barcode}, rawValue: ${rawValue}")
 
                         if(rawValue!= "" && rawValue != lastRawValue)
                             lastRawValue = rawValue.toString()
                     }
 
-                    Log.i("CameraActivity", "lastRawValue: ${lastRawValue}")
+                    Log.i("CameraFragment", "lastRawValue: ${lastRawValue}")
 
                     if(lastRawValue == "" || lastRawValue.toIntOrNull() == null){
                         placeView.setText("Scanning for a valid QR code...")
@@ -271,22 +277,22 @@ class CameraActivity : BaseActivity() {
                     imageProxy.close()
                 }
                 .addOnFailureListener {
-                    Log.i( "CameraActivity", "Code detected")
-            }
+                    Log.i( "CameraFragment", "Code detected")
+                }
         } else {
-            Log.e( "CameraActivity", "No code detected")
+            Log.e( "CameraFragment", "No code detected")
         }
     }
 
     private fun visitPlaceById() {
         isProcessingEnabled = false
-        val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val sharedPreferences = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         val userId = sharedPreferences.getString("id", "0")!!.toInt()
 
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val current = LocalDateTime.now().format(formatter).toString()
 
-        //Log.w("CameraActivity", "place_id: $lastRawValue, user_email: $userEmail, date_of_visit: $current")
+        //Log.w("CameraFragment", "place_id: $lastRawValue, user_email: $userEmail, date_of_visit: $current")
 
         lifecycleScope.launch {
             try{
@@ -296,51 +302,51 @@ class CameraActivity : BaseActivity() {
                 if(response.isSuccessful && response.body() != null){
                     val info = response.body()!!
 
-                    Log.w("CameraActivity", "info_status = ${info.status}")
-                    //Log.i("CameraActivity", "RESPONSE - Name: ${info.place_name}, Description: ${info.place_description}, Status: ${info.status}")
+                    Log.w("CameraFragment", "info_status = ${info.status}")
+                    //Log.i("CameraFragment", "RESPONSE - Name: ${info.place_name}, Description: ${info.place_description}, Status: ${info.status}")
 
                     if(response.code() == 201){
-                        Toast.makeText(baseContext, "Congratulation! You visited this place!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Congratulation! You visited this place!", Toast.LENGTH_SHORT).show()
                         souvenirBtn.visibility = View.VISIBLE
                     } else {
                         if(response.code() == 200) {
-                            Toast.makeText(baseContext, "You already saw this place!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "You already saw this place!", Toast.LENGTH_SHORT).show()
                         }
                     }
-                    Log.i("CameraActivity", "Before setting UI elements")
+                    Log.i("CameraFragment", "Before setting UI elements")
                     placeView.text = info?.name
                     placeInfoView.text = info?.information
                     placeInfoView.visibility = View.VISIBLE
                     cameraView.visibility = View.GONE
                     visitBtn.visibility = View.GONE
-                    Log.i("CameraActivity", "UI elements set, stopping camera and location")
+                    Log.i("CameraFragment", "UI elements set, stopping camera and location")
 
                     stopCamera()
                     stopLocationUpdates()
-                    Log.i("CameraActivity", "Camera and location stopped - should stay on this screen")
+                    Log.i("CameraFragment", "Camera and location stopped - should stay on this screen")
 
                 } else {
-                    Log.w("CameraActivity", "Bad request, response.body: ${response.code()}")
+                    Log.w("CameraFragment", "Bad request, response.body: ${response.code()}")
                     if(response.code() >= 400){
-                        Toast.makeText(baseContext, "Bad request", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Bad request", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: IOException){
-                Log.e("CameraActivity", "IO Exception: ${e}")
-                Toast.makeText(baseContext, "Connection error", Toast.LENGTH_SHORT).show()
+                Log.e("CameraFragment", "IO Exception: ${e}")
+                Toast.makeText(requireContext(), "Connection error", Toast.LENGTH_SHORT).show()
             } catch (e: HttpException) {
-                Log.e("CameraActivity", "HTTP Exception: ${e.message}")
-                Toast.makeText(baseContext, "Server error", Toast.LENGTH_SHORT).show()
+                Log.e("CameraFragment", "HTTP Exception: ${e.message}")
+                Toast.makeText(requireContext(), "Server error", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun sendTakenSouvenir(imageString: String) {
-        val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val sharedPreferences = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         val userId = sharedPreferences.getString("id", "")
 
         if(userId == ""){
-            Log.i("CameraActivity", "Invalid user!")
+            Log.i("CameraFragment", "Invalid user!")
             return
         }
 
@@ -355,29 +361,29 @@ class CameraActivity : BaseActivity() {
                 if (response.isSuccessful && response.body() != null) {
 
                     val info = response.body()!!
-                    Log.i("CameraActivity", "info.status: ${info.status} - response.code(): ${response.code()}")
+                    Log.i("CameraFragment", "info.status: ${info.status} - response.code(): ${response.code()}")
                     if (response.code() == 201) {
-                        Toast.makeText(baseContext, "Photo saved!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Photo saved!", Toast.LENGTH_SHORT).show()
                         confirmSouvenirBtn.visibility = View.GONE
                         discardSouvenirBtn.visibility = View.GONE
                         souvenirBtn.visibility = View.VISIBLE
 
-                        val intent = Intent(this@CameraActivity, HomepageActivity::class.java)
+                        val intent = Intent(requireContext(), HomepageActivity::class.java)
                         startActivity(intent)
                     }
                 } else {
                     Toast.makeText(
-                        baseContext,
+                        requireContext(),
                         "Error occurred: photo not saved!",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
             } catch (e: IOException) {
-                Log.e("CameraActivity", "IO Exception: ${e}")
-                Toast.makeText(baseContext, "Connection error", Toast.LENGTH_SHORT).show()
+                Log.e("CameraFragment", "IO Exception: ${e}")
+                Toast.makeText(requireContext(), "Connection error", Toast.LENGTH_SHORT).show()
             } catch (e: HttpException) {
-                Log.e("CameraActivity", "HTTP Exception: ${e.message}")
-                Toast.makeText(baseContext, "Server error", Toast.LENGTH_SHORT).show()
+                Log.e("CameraFragment", "HTTP Exception: ${e.message}")
+                Toast.makeText(requireContext(), "Server error", Toast.LENGTH_SHORT).show()
             } finally {
                 isLoadingState = false
                 composeProgressIndicator.visibility = View.GONE
@@ -391,19 +397,23 @@ class CameraActivity : BaseActivity() {
             isProcessingEnabled = false
 
             // Unbind tutti i use cases dalla fotocamera
-            cameraProvider.unbindAll()
+            if (::cameraProvider.isInitialized) {
+                cameraProvider.unbindAll()
+            }
 
             // Shutdown dell'executor
-            cameraExecutor.shutdown()
+            if (::cameraExecutor.isInitialized) {
+                cameraExecutor.shutdown()
+            }
 
-            Log.i("CameraActivity", "Camera stopped successfully")
+            Log.i("CameraFragment", "Camera stopped successfully")
         } catch (exc: Exception) {
-            Log.e("CameraActivity", "Error stopping camera: ${exc.localizedMessage}")
+            Log.e("CameraFragment", "Error stopping camera: ${exc.localizedMessage}")
         }
     }
 
     private fun updateCamera(){
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
 
         cameraProviderFuture.addListener(
             {
@@ -421,7 +431,7 @@ class CameraActivity : BaseActivity() {
                     val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
                     imageCapture = ImageCapture.Builder()
                         .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
-                        .setTargetRotation(windowManager.defaultDisplay.rotation)
+                        .setTargetRotation(requireActivity().windowManager.defaultDisplay.rotation)
                         .build()
 
                     // rimuovo vecchi bind e lego al lifecycle
@@ -448,16 +458,16 @@ class CameraActivity : BaseActivity() {
 
                     placeInfoView.visibility = View.GONE
 
-                    Log.i("CameraActivity", "Camera reinitialized for souvenir")
+                    Log.i("CameraFragment", "Camera reinitialized for souvenir")
 
                 } catch (exc: Exception) {
-                    Log.e("CameraActivity", "Error updating camera: ${exc.localizedMessage}")
-                    Toast.makeText(baseContext,
+                    Log.e("CameraFragment", "Error updating camera: ${exc.localizedMessage}")
+                    Toast.makeText(requireContext(),
                         "Camera initialization failed: ${exc.localizedMessage}",
                         Toast.LENGTH_SHORT).show()
                 }
             },
-            ContextCompat.getMainExecutor(this)
+            ContextCompat.getMainExecutor(requireContext())
         )
 
         cameraView.visibility = View.VISIBLE
@@ -468,14 +478,14 @@ class CameraActivity : BaseActivity() {
 
     fun checkPermission(permission: String): Boolean {
         if (ContextCompat.checkSelfPermission(
-                this,
+                requireContext(),
                 permission
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            Log.i("LocationActivity", "Location permission granted")
+            Log.i("LocationFragment", "Location permission granted")
             return true
         } else {
-            Log.e("LoactionActivity", "Location permission denied")
+            Log.e("LocationFragment", "Location permission denied")
             return false
         }
     }
@@ -483,10 +493,10 @@ class CameraActivity : BaseActivity() {
     private fun takePhoto(){
         placeInfoView.visibility = View.GONE
         imageCapture.takePicture(
-            ContextCompat.getMainExecutor(this),
+            ContextCompat.getMainExecutor(requireContext()),
             object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
-                    Log.i("CameraActivity", "Photo captured successfully! Image: ${image}")
+                    Log.i("CameraFragment", "Photo captured successfully! Image: ${image}")
 
                     // imageProxy mantiene rotazione del sensore con cui immagine è acquisita
                     // necessario renderla bitmap e ruotarla
@@ -494,8 +504,8 @@ class CameraActivity : BaseActivity() {
                     cameraView.foreground = android.graphics.drawable.BitmapDrawable(resources, rotatedBitmap)
                     val imageString = bitmapToBase64(rotatedBitmap)
 
-                    Log.i("CameraActivity", "imageString: ${imageString}")
-                    Toast.makeText(baseContext, "Photo taken!", Toast.LENGTH_SHORT).show()
+                    Log.i("CameraFragment", "imageString: ${imageString}")
+                    Toast.makeText(requireContext(), "Photo taken!", Toast.LENGTH_SHORT).show()
 
                     image.close()
                     confirmSouvenirBtn.setOnClickListener { sendTakenSouvenir(imageString) }
@@ -511,9 +521,9 @@ class CameraActivity : BaseActivity() {
                         updateCamera()
                     }
 
-            }
-        })
-        Log.i("CameraActivity", "I am here!!")
+                }
+            })
+        Log.i("CameraFragment", "I am here!!")
     }
 
     private fun startLocationUpdates() {
@@ -522,11 +532,11 @@ class CameraActivity : BaseActivity() {
                 fusedLocationClient.requestLocationUpdates(
                     locationRequest,
                     locationCallback,
-                    mainLooper
+                    android.os.Looper.getMainLooper()
                 )
-                Log.i("LocationActivity", "Location updates started")
+                Log.i("LocationFragment", "Location updates started")
             } catch (e: SecurityException) {
-                Log.e("LocationActivity", "Error starting location updates", e)
+                Log.e("LocationFragment", "Error starting location updates", e)
             }
         }
     }
@@ -557,7 +567,13 @@ class CameraActivity : BaseActivity() {
 
     private fun stopLocationUpdates() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
-        Log.i("LocationActivity", "Location updates stopped")
+        Log.i("LocationFragment", "Location updates stopped")
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        stopCamera()
+        stopLocationUpdates()
     }
 
     @Composable
@@ -580,10 +596,12 @@ class CameraActivity : BaseActivity() {
                     permissionsGranted = false
             }
             if(!permissionsGranted){
-                Toast.makeText(baseContext,
+                Toast.makeText(requireContext(),
                     "Permission request denied" ,
                     Toast.LENGTH_SHORT).show()
-            } else { startCamera()}
+            } else {
+                startLocationUpdates()
+                startCamera()
+            }
         }
-
 }

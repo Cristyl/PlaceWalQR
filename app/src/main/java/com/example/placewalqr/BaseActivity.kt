@@ -6,6 +6,7 @@ import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import android.widget.RelativeLayout
+import androidx.fragment.app.Fragment
 
 abstract class BaseActivity : AppCompatActivity() {
 
@@ -65,7 +66,37 @@ abstract class BaseActivity : AppCompatActivity() {
         }
 
         btnCamera.setOnClickListener {
-            startActivity(Intent(this, CameraActivity::class.java))
+            val cameraFragment = CameraFragment()
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.content_frame, cameraFragment)
+                .addToBackStack(null) // Opzionale: aggiunge il fragment allo stack indietro
+                .commit()
+        }
+
+        btnCamera.setOnClickListener {
+            navigateToFragment(CameraFragment())
+        }
+
+        // Forza il focus del tab dopo che la view è stata renderizzata
+        bottomNavigationView.post {
+            highlightCurrentMenuItem(bottomNavigationView)
         }
     }
+
+    private fun highlightCurrentMenuItem(bottomNavigationView: BottomNavigationView) {
+        when (this) {
+            is HomepageActivity -> bottomNavigationView.menu.findItem(R.id.nav_home).isChecked = true
+            is MapsActivity -> bottomNavigationView.menu.findItem(R.id.nav_map).isChecked = true
+            is AchievementsActivity -> bottomNavigationView.menu.findItem(R.id.nav_achievements).isChecked = true
+            is LeaderboardActivity -> bottomNavigationView.menu.findItem(R.id.nav_leaderboard).isChecked = true
+        }
+    }
+
+    private fun navigateToFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.content_frame, fragment)
+            .addToBackStack(null) // Opzionale: aggiunge il fragment allo stack indietro
+            .commit()
+    }
+
 }
