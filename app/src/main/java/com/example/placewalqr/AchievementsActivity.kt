@@ -5,6 +5,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
+import android.widget.TextView
 
 class AchievementsActivity : BaseActivity() {
 
@@ -17,6 +18,11 @@ class AchievementsActivity : BaseActivity() {
 
         val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
         val id = sharedPreferences.getString("id", null)
+
+        val nickname = sharedPreferences.getString("nickname", null)
+
+        // trova la TextView
+        val nicknameTextView = findViewById<TextView>(R.id.nicknameTextView)
 
         if (id != null) {
             lifecycleScope.launch {

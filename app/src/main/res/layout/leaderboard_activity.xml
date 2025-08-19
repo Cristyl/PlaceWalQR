@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Titolo App -->
     <TextView
         android:id="@+id/app_title"
         android:layout_width="match_parent"
@@ -14,6 +15,7 @@
         android:textStyle="bold"
         android:gravity="center" />
 
+    <!-- Titolo Leaderboard -->
     <TextView
         android:id="@+id/leaderboard_title"
         android:layout_width="match_parent"
@@ -23,6 +25,45 @@
         android:textStyle="bold"
         android:layout_marginTop="16dp" />
 
+    <!-- Card dedicata all'utente loggato -->
+    <LinearLayout
+        android:id="@+id/user_entry_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@android:color/darker_gray"
+        android:padding="12dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/user_position"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="#0"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:layout_marginEnd="16dp" />
+
+        <TextView
+            android:id="@+id/user_nickname"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="You"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/user_score"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 pts"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- Lista classifica generale -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/leaderboard_recycler_view"
         android:layout_width="match_parent"

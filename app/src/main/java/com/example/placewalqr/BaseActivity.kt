@@ -26,33 +26,37 @@ abstract class BaseActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_home -> {
                     if (this !is HomepageActivity) {
-                        val intent = Intent(this, HomepageActivity::class.java)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                        startActivity(intent)
+                        bottomNavigationView.menu.findItem(R.id.nav_home).isChecked = true
+                        startActivity(Intent(this, HomepageActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                        })
                     }
                     true
                 }
                 R.id.nav_map -> {
                     if (this !is MapsActivity) {
-                        val intent = Intent(this, MapsActivity::class.java)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                        startActivity(intent)
+                        bottomNavigationView.menu.findItem(R.id.nav_map).isChecked = true
+                        startActivity(Intent(this, MapsActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                        })
                     }
                     true
                 }
                 R.id.nav_achievements -> {
                     if (this !is AchievementsActivity) {
-                        val intent = Intent(this, AchievementsActivity::class.java)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                        startActivity(intent)
+                        bottomNavigationView.menu.findItem(R.id.nav_achievements).isChecked = true
+                        startActivity(Intent(this, AchievementsActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                        })
                     }
                     true
                 }
                 R.id.nav_leaderboard -> {
                     if (this !is LeaderboardActivity) {
-                        val intent = Intent(this, LeaderboardActivity::class.java)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                        startActivity(intent)
+                        bottomNavigationView.menu.findItem(R.id.nav_leaderboard).isChecked = true
+                        startActivity(Intent(this, LeaderboardActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                        })
                     }
                     true
                 }
@@ -62,20 +66,6 @@ abstract class BaseActivity : AppCompatActivity() {
 
         btnCamera.setOnClickListener {
             startActivity(Intent(this, CameraActivity::class.java))
-        }
-
-        // Forza il focus del tab dopo che la view è stata renderizzata
-        bottomNavigationView.post {
-            highlightCurrentMenuItem(bottomNavigationView)
-        }
-    }
-
-    private fun highlightCurrentMenuItem(bottomNavigationView: BottomNavigationView) {
-        when (this) {
-            is HomepageActivity -> bottomNavigationView.menu.findItem(R.id.nav_home).isChecked = true
-            is MapsActivity -> bottomNavigationView.menu.findItem(R.id.nav_map).isChecked = true
-            is AchievementsActivity -> bottomNavigationView.menu.findItem(R.id.nav_achievements).isChecked = true
-            is LeaderboardActivity -> bottomNavigationView.menu.findItem(R.id.nav_leaderboard).isChecked = true
         }
     }
 }
