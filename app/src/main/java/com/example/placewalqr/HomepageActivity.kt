@@ -58,6 +58,13 @@ class HomepageActivity : BaseActivity(){
                         see_sights=body?.count ?: 0
                         val seeSightText=seesights_label.text.toString() + " " + see_sights.toString()
                         seesights_label.setText(seeSightText)
+                    }else if(responsePoint.code()==404){
+                        points=0
+                        val pointsText=points_label.text.toString() + " " + points.toString()
+                        points_label.setText(pointsText)
+                        see_sights=0
+                        val seeSightText=seesights_label.text.toString() + " " + see_sights.toString()
+                        seesights_label.setText(seeSightText)
                     }
 
                     if(responsePlace.code()==200){
@@ -76,6 +83,11 @@ class HomepageActivity : BaseActivity(){
                                 photoImageView.visibility= View.INVISIBLE
                             }
                         }
+                    }else if(responsePlace.code()==404){
+                        val body=responsePlace.body()
+                        last_place=body?.name?:"No place visited"
+                        val lastPlaceText=lastplace_label.text.toString() + " " + last_place
+                        lastplace_label.setText(lastPlaceText)
                     }
                 }
             }catch (e: Exception){
