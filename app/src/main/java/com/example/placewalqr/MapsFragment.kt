@@ -1,13 +1,15 @@
 package com.example.placewalqr
 
-import android.content.pm.PackageManager
-import android.os.Bundle
+import RetrofitInstance
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.location.Location
+import android.os.Bundle
 import android.os.Looper
 import android.util.Log
 import android.view.View
@@ -15,18 +17,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.activity.result.ActivityResultLauncher
-
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import com.example.placewalqr.databinding.ActivityMapsBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -34,8 +27,14 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.coroutines.launch
 
 class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
@@ -141,11 +140,21 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
                 val titleTextView = infoView.findViewById<TextView>(R.id.title_marker)
                 val descriptionView= infoView.findViewById<TextView>(R.id.description_marker)
                 val photoImageView=infoView.findViewById<ImageView>(R.id.photo_marker)
+                val visitedTextView=infoView.findViewById<TextView>(R.id.status_marker)
+                val coordinatesTextView=infoView.findViewById<TextView>(R.id.coordinates_marker)
 
                 val placeData=marker.tag as? VisitedPlaceResponse
                 if(placeData!=null){
                     titleTextView.text=placeData.name
                     descriptionView.text=placeData.information
+                    if(placeData.visited){
+                        visitedTextView.text = "Visited"
+                        visitedTextView.setTextColor(Color.GREEN)
+                    }else{
+                        visitedTextView.text="Not visited yet"
+                        visitedTextView.setTextColor(Color.RED)
+                    }
+                    coordinatesTextView.text=placeData.latitude.toString() + ", " + placeData.longitude.toString()
 
                     val imageBytes=placeData.getImageBytes()
                     if (imageBytes!=null && imageBytes.isNotEmpty()){
