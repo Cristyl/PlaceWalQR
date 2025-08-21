@@ -124,7 +124,7 @@ class MainActivity : ComponentActivity() {
                     editor.putString("nickname", userInfo.nickname)
                     editor.apply()
 
-                    var intent = Intent(this@MainActivity, HomepageFragment::class.java)
+                    var intent = Intent(this@MainActivity, BaseActivity::class.java)
                     startActivity(intent)
                     finish()
                 } else {

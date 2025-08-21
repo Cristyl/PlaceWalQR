@@ -13,9 +13,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/placewalqr_icon"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/placewalqr_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.PlaceWalQR">
 
@@ -52,13 +52,6 @@
             android:label="@string/app_name"
             android:theme="@style/Theme.PlaceWalQR">
         </activity>
-
-        <activity
-            android:name=".CameraActivity"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.PlaceWalQR">
-        </activity>
         <activity
             android:name=".BaseActivity"
             android:exported="true"
@@ -66,19 +59,6 @@
             android:theme="@style/Theme.PlaceWalQR">
         </activity>
 
-        <activity
-            android:name=".AchievementsActivity"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.PlaceWalQR">
-        </activity>
-
-        <activity
-            android:name=".LeaderboardActivity"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.PlaceWalQR">
-        </activity>
     </application>
 
 </manifest>

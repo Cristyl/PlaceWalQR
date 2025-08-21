@@ -309,6 +309,7 @@ class CameraFragment : Fragment() {
                     } else {
                         if(response.code() == 200) {
                             Toast.makeText(requireContext(), "You already saw this place!", Toast.LENGTH_SHORT).show()
+                            stopLocationUpdates()
                         }
                     }
                     Log.i("CameraFragment", "Before setting UI elements")

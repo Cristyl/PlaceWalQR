@@ -77,14 +77,18 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
                             photoImageView.setImageBitmap(bitmap)
                             photoImageView.visibility= View.VISIBLE
                         }else{
-                            photoImageView.visibility= View.INVISIBLE
+                            photoImageView.visibility= View.GONE
                         }
+                    } else {
+                        // DA RIVEDERE!
+                        photoImageView.visibility= View.GONE
                     }
                 }else if(responsePlace.code()==404){
                     val body=responsePlace.body()
                     last_place=body?.name?:"No place visited"
                     val lastPlaceText=lastplace_label.text.toString() + " " + last_place
                     lastplace_label.setText(lastPlaceText)
+                    photoImageView.visibility= View.GONE
                 }
             }catch (e: Exception){
 
