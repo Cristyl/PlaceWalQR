@@ -20,6 +20,7 @@
     <string name="lastplace_home">Last place visited:</string>
     <string name="photoHomepageDescription">Souvenir photo</string>
     <string name="logout_btn">Log out</string>
+    <string name="novisited_txt">No place visited yet</string>
 
     <string name="item_image">Place image</string>
     <string name="item_name">Place name</string>

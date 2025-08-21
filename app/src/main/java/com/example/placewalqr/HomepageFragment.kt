@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.VIEW_MODEL_STORE_OWNER_KEY
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
@@ -24,6 +25,7 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
     private lateinit var lastplace_label: TextView
     private lateinit var photoImageView: ImageView
     private lateinit var logoutBtn: Button
+    private lateinit var novisited_txt: TextView
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?){
         super.onViewCreated(view, savedInstanceState)
@@ -36,6 +38,7 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
         seesights_label = view.findViewById<TextView>(R.id.seesights)
         points_label= view.findViewById<TextView>(R.id.points)
         lastplace_label= view.findViewById<TextView>(R.id.lastplace)
+        novisited_txt=view.findViewById<TextView>(R.id.no_visited)
         photoImageView=view.findViewById<ImageView>(R.id.photo_visited)
         photoImageView.visibility=View.GONE
         logoutBtn=view.findViewById<Button>(R.id.logout_btn)
@@ -58,6 +61,10 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
                 val responsePlace = RetrofitInstance.apiService.findLastPlaceById(id)
 
                 if(responsePoint.code()==200){
+                    seesights_label.visibility= View.VISIBLE
+                    points_label.visibility= View.VISIBLE
+                    lastplace_label.visibility= View.VISIBLE
+                    novisited_txt.visibility= View.GONE
                     val body=responsePoint.body()
                     points= body?.points ?: 0
                     val pointsText=points_label.text.toString() + " " + points.toString()
@@ -66,12 +73,11 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
                     val seeSightText=seesights_label.text.toString() + " " + see_sights.toString()
                     seesights_label.setText(seeSightText)
                 }else if(responsePoint.code()==404){
-                    points=0
-                    val pointsText=points_label.text.toString() + " " + points.toString()
-                    points_label.setText(pointsText)
-                    see_sights=0
-                    val seeSightText=seesights_label.text.toString() + " " + see_sights.toString()
-                    seesights_label.setText(seeSightText)
+                    seesights_label.visibility= View.GONE
+                    points_label.visibility= View.GONE
+                    lastplace_label.visibility= View.GONE
+                    novisited_txt.visibility= View.VISIBLE
+                    photoImageView.visibility= View.GONE
                 }
 
                 if(responsePlace.code()==200){
@@ -88,11 +94,6 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
                             photoImageView.visibility= View.VISIBLE
                         }
                     }
-                }else if(responsePlace.code()==404){
-                    val body=responsePlace.body()
-                    last_place=body?.name?:"No place visited"
-                    val lastPlaceText=lastplace_label.text.toString() + " " + last_place
-                    lastplace_label.setText(lastPlaceText)
                 }
             }catch (e: Exception){
 
