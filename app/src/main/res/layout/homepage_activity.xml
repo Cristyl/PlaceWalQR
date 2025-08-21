@@ -70,5 +70,12 @@
             android:background="@android:color/darker_gray"
             android:layout_marginBottom="8dp"
             android:contentDescription="@string/photoHomepageDescription" />
+
+        <Button
+            android:id="@+id/logout_btn"
+            android:layout_gravity="end"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:text="@string/logout_btn" />
     </LinearLayout>
 </ScrollView>

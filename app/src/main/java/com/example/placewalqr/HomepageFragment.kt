@@ -1,9 +1,11 @@
 package com.example.placewalqr
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
@@ -21,6 +23,7 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
     private lateinit var seesights_label: TextView
     private lateinit var lastplace_label: TextView
     private lateinit var photoImageView: ImageView
+    private lateinit var logoutBtn: Button
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?){
         super.onViewCreated(view, savedInstanceState)
@@ -34,6 +37,13 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
         points_label= view.findViewById<TextView>(R.id.points)
         lastplace_label= view.findViewById<TextView>(R.id.lastplace)
         photoImageView=view.findViewById<ImageView>(R.id.photo_visited)
+        photoImageView.visibility=View.GONE
+        logoutBtn=view.findViewById<Button>(R.id.logout_btn)
+        logoutBtn.setOnClickListener {
+            val intent = Intent(requireContext(), MainActivity::class.java)
+            startActivity(intent)
+            requireActivity().finish()
+        }
     }
 
     private fun loadHomePage(){
@@ -76,19 +86,13 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
                         if(bitmap!=null){
                             photoImageView.setImageBitmap(bitmap)
                             photoImageView.visibility= View.VISIBLE
-                        }else{
-                            photoImageView.visibility= View.GONE
                         }
-                    } else {
-                        // DA RIVEDERE!
-                        photoImageView.visibility= View.GONE
                     }
                 }else if(responsePlace.code()==404){
                     val body=responsePlace.body()
                     last_place=body?.name?:"No place visited"
                     val lastPlaceText=lastplace_label.text.toString() + " " + last_place
                     lastplace_label.setText(lastPlaceText)
-                    photoImageView.visibility= View.GONE
                 }
             }catch (e: Exception){
 
