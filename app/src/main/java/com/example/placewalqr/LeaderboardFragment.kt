@@ -1,8 +1,10 @@
 package com.example.placewalqr
 
 import android.os.Bundle
+import android.view.View
 import android.widget.TextView
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.lifecycle.lifecycleScope
@@ -10,7 +12,7 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
 
-class LeaderboardActivity : BaseActivity() {
+class LeaderboardFragment : Fragment(R.layout.leaderboard_activity) {
 
     private lateinit var leaderboardRecyclerView: RecyclerView
     private lateinit var adapter: LeaderboardAdapter
@@ -20,24 +22,23 @@ class LeaderboardActivity : BaseActivity() {
     private lateinit var userNicknameText: TextView
     private lateinit var userScoreText: TextView
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.leaderboard_activity)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         // Inizializza RecyclerView
-        leaderboardRecyclerView = findViewById(R.id.leaderboard_recycler_view)
-        leaderboardRecyclerView.layoutManager = LinearLayoutManager(this)
+        leaderboardRecyclerView = view.findViewById(R.id.leaderboard_recycler_view)
+        leaderboardRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         // Inizializza card utente
-        userPositionText = findViewById(R.id.user_position)
-        userNicknameText = findViewById(R.id.user_nickname)
-        userScoreText = findViewById(R.id.user_score)
+        userPositionText = view.findViewById(R.id.user_position)
+        userNicknameText = view.findViewById(R.id.user_nickname)
+        userScoreText = view.findViewById(R.id.user_score)
 
         fetchLeaderboard()
     }
 
     private fun fetchLeaderboard() {
-        val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val sharedPreferences = requireActivity().getSharedPreferences("UserPrefs", android.content.Context.MODE_PRIVATE)
         val nickname = sharedPreferences.getString("nickname", null)
 
         if (nickname == null) {
@@ -45,7 +46,7 @@ class LeaderboardActivity : BaseActivity() {
             return
         }
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 // Chiamata API con parametro nickname
                 val response = RetrofitInstance.apiService.getLeaderboard(nickname)
@@ -53,17 +54,17 @@ class LeaderboardActivity : BaseActivity() {
                     val leaderboardData = response.body()!!
 
                     if (leaderboardData.isNotEmpty()) {
-                        // Ultima entry = utente loggato
-                        val userEntry = leaderboardData.last()
+                        // Trova l’entry corrispondente all’utente loggato
+                        val userEntry = leaderboardData.find { it.nickname == nickname }
 
-                        userPositionText.text = "#${userEntry.position}"
-                        userNicknameText.text = userEntry.nickname
-                        userScoreText.text = "${userEntry.total_points} pts"
+                        userEntry?.let {
+                            userPositionText.text = getString(R.string.rank_format, it.position)
+                            userNicknameText.text = it.nickname
+                            userScoreText.text = getString(R.string.score_format, it.total_points)
+                        }
 
-                        // Tutti gli altri utenti (senza l’utente loggato)
-                        val others = leaderboardData.dropLast(1)
-
-                        adapter = LeaderboardAdapter(others)
+                        // Mostra tutti gli altri (la lista intera)
+                        adapter = LeaderboardAdapter(leaderboardData)
                         leaderboardRecyclerView.adapter = adapter
                     }
 
@@ -79,6 +80,6 @@ class LeaderboardActivity : BaseActivity() {
     }
 
     private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
 }
