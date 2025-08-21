@@ -18,13 +18,11 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
-import androidx.camera.core.CameraProvider
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -368,7 +366,7 @@ class CameraFragment : Fragment() {
                         discardSouvenirBtn.visibility = View.GONE
                         souvenirBtn.visibility = View.VISIBLE
 
-                        val intent = Intent(requireContext(), HomepageActivity::class.java)
+                        val intent = Intent(requireContext(), HomepageFragment::class.java)
                         startActivity(intent)
                     }
                 } else {

@@ -16,12 +16,6 @@
         android:layout_width="match_parent"
         android:layout_height="611dp"
         android:layout_weight="1"
-        tools:context=".MapsActivity" />
+        tools:context=".MapsFragment" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?android:attr/windowBackground"
-        app:menu="@menu/bottom_nav_menu" />
 </LinearLayout>

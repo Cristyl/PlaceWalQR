@@ -1,10 +1,10 @@
 package com.example.placewalqr
 
 import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.Location
@@ -14,11 +14,12 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.camera.core.Logger
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.VIEW_MODEL_STORE_OWNER_KEY
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.activity.result.ActivityResultLauncher
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -37,7 +38,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.Marker
 import kotlinx.coroutines.launch
 
-class MapsActivity : BaseActivity(), OnMapReadyCallback {
+class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
@@ -50,21 +51,36 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback {
         private const val LOCATION_PERMISSION_REQUEST_CODE=1
         private const val DEFAULT_ZOOM=15f
     }
+    private val locationPermissionRequest =registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ){ permissions ->
+        when{
+            permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
+                enableMyLocation()
+            }
+            permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
+                enableMyLocation()
+            }
+            else -> {
+                Toast.makeText(requireContext(), "Permission location not granted", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
 
-        binding = ActivityMapsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding = ActivityMapsBinding.bind(view)
 
         //Initialization client for localization
-        fusedLocationClient= LocationServices.getFusedLocationProviderClient(this)
+        fusedLocationClient= LocationServices.getFusedLocationProviderClient(requireContext())
 
         //localization request initialization
         createLocationRequest()
         createLocationCallback()
 
-        val mapFragment = supportFragmentManager
+        val mapFragment = childFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
@@ -174,26 +190,11 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback {
     }
 
     private fun checkLocationPermission():Boolean{
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        return ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun requestLocationPermission(){
-        ActivityCompat.requestPermissions(this,
-                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
-                        LOCATION_PERMISSION_REQUEST_CODE)
-    }
-
-    private fun onRequestPermissionResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray){
-        super <BaseActivity>.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when(requestCode){
-            LOCATION_PERMISSION_REQUEST_CODE -> {
-                if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                    enableMyLocation()
-                }else{
-                    Toast.makeText(this, "Required localization permission", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
+        locationPermissionRequest.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
     }
 
     @SuppressLint("MissingPermission")
@@ -218,7 +219,7 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback {
                 requestSingleLocationUpdate()
             }
         }.addOnFailureListener {
-            Toast.makeText(this, "Impossible to get current position", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Impossible to get current position", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -282,7 +283,7 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback {
     private fun loadPlaceMarkers() {
         Log.d("Markers", "Starting to load place markers")
 
-        val sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val sharedPreferences = requireContext().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         val id = sharedPreferences.getString("id", "0").toString().toInt()
 
         Log.d("Markers", "User ID: $id")
@@ -295,14 +296,12 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback {
                 Log.d("Markers", "API Response code: ${response.code()}")
                 Log.d("Markers", "API Response successful: ${response.isSuccessful}")
 
-                runOnUiThread {
-                    val places = response.body()
-                    Log.d("Markers", "Places received: ${places?.size ?: 0}")
+                val places = response.body()
+                Log.d("Markers", "Places received: ${places?.size ?: 0}")
 
-                    places?.forEach { place ->
-                        Log.d("Markers", "Adding marker for: ${place.name} at ${place.latitude}, ${place.longitude}")
-                        addPlaceMarker(place)
-                    }
+                places?.forEach { place ->
+                    Log.d("Markers", "Adding marker for: ${place.name} at ${place.latitude}, ${place.longitude}")
+                    addPlaceMarker(place)
                 }
             } catch (e: Exception) {
                 Log.e("Markers", "Error loading places: ${e.message}")
