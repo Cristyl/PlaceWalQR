@@ -84,8 +84,8 @@
         <Button
             android:id="@+id/logout_btn"
             android:layout_gravity="end"
-            android:layout_width="100dp"
-            android:layout_height="50dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="@string/logout_btn" />
     </LinearLayout>
 </ScrollView>

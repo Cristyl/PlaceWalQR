@@ -14,6 +14,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -67,9 +68,11 @@ class CameraFragment : Fragment() {
     private lateinit var cameraView: PreviewView
     private lateinit var placeView: TextView
     private lateinit var placeInfoView: TextView
-    private lateinit var visitBtn: Button
+    private lateinit var placeImage: ImageView
+
     private lateinit var souvenirBtn: Button
 
+    private lateinit var visitBtn: Button
     private lateinit var confirmSouvenirBtn: Button
     private lateinit var discardSouvenirBtn: Button
     private lateinit var imageCapture: ImageCapture
@@ -99,7 +102,7 @@ class CameraFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.camera_activity, container, false)
+        return inflater.inflate(R.layout.camera_fragment, container, false)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -111,8 +114,10 @@ class CameraFragment : Fragment() {
 
         placeView = view.findViewById(R.id.place_view)
         placeInfoView = view.findViewById(R.id.place_info)
+        placeImage = view.findViewById(R.id.place_image)
 
         placeInfoView.visibility = View.GONE
+        placeImage.visibility = View.GONE
 
         lastRawValue = ""
 
@@ -302,6 +307,9 @@ class CameraFragment : Fragment() {
 
                     Log.w("CameraFragment", "info_status = ${info.status}")
                     //Log.i("CameraFragment", "RESPONSE - Name: ${info.place_name}, Description: ${info.place_description}, Status: ${info.status}")
+                    Log.i("CameraFragment", "Body of response: ${response.body()}")
+
+                    var souvenirPhoto = ""
 
                     if(response.code() == 201){
                         Toast.makeText(requireContext(), "Congratulation! You visited this place!", Toast.LENGTH_SHORT).show()
@@ -309,23 +317,31 @@ class CameraFragment : Fragment() {
                     } else {
                         if(response.code() == 200) {
                             Toast.makeText(requireContext(), "You already saw this place!", Toast.LENGTH_SHORT).show()
-                            stopLocationUpdates()
+                            //Log.e("CameraFragment", "Image received: ${response.body()?.image}")
+
+                            if(!(info.souvenir)){
+                                // impostare l'immagine di default del luogo
+                            } else {
+                                // impostare l'immagine ricordo scattata dall'utente
+                            }
+
+                            // processo la foto ottenuta dal backend
+                            placeImage.setImageBitmap(base64ToBitmap(info.image))
                         }
                     }
-                    Log.i("CameraFragment", "Before setting UI elements")
+
                     placeView.text = info?.name
                     placeInfoView.text = info?.information
                     placeInfoView.visibility = View.VISIBLE
                     cameraView.visibility = View.GONE
                     visitBtn.visibility = View.GONE
-                    Log.i("CameraFragment", "UI elements set, stopping camera and location")
+                    placeImage.visibility = View.VISIBLE
 
                     stopCamera()
                     stopLocationUpdates()
-                    Log.i("CameraFragment", "Camera and location stopped - should stay on this screen")
 
                 } else {
-                    Log.w("CameraFragment", "Bad request, response.body: ${response.code()}")
+                    Log.w("CameraFragment", "Bad request, response.body: ${response.body()}")
                     if(response.code() >= 400){
                         Toast.makeText(requireContext(), "Bad request", Toast.LENGTH_SHORT).show()
                     }
@@ -367,8 +383,9 @@ class CameraFragment : Fragment() {
                         discardSouvenirBtn.visibility = View.GONE
                         souvenirBtn.visibility = View.VISIBLE
 
-                        val intent = Intent(requireContext(), HomepageFragment::class.java)
-                        startActivity(intent)
+                        parentFragmentManager.beginTransaction()
+                            .replace(R.id.content_frame, HomepageFragment())
+                            .commit()
                     }
                 } else {
                     Toast.makeText(
@@ -562,6 +579,11 @@ class CameraFragment : Fragment() {
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
         val byteArray = byteArrayOutputStream.toByteArray()
         return Base64.getEncoder().encodeToString(byteArray)
+    }
+
+    private fun base64ToBitmap(base64String: String?): Bitmap {
+        val decodedBytes = Base64.getDecoder().decode(base64String)
+        return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
     }
 
     private fun stopLocationUpdates() {

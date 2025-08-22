@@ -1,11 +1,10 @@
 package com.example.placewalqr
 
-import java.sql.Blob
-
 data class VisitPlaceResponse(
     val status: String,
+    val souvenir: Boolean,
     val name: String,
     val information: String,
-    val image: Blob,
+    val image: String?,
     val seen: Boolean
 )
