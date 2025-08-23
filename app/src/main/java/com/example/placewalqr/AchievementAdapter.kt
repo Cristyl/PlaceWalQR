@@ -1,7 +1,7 @@
 package com.example.placewalqr
 
 import android.graphics.BitmapFactory
-import android.util.Base64
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,16 +27,21 @@ class AchievementAdapter(private val placeList: List<Place>) :
         val place = placeList[position]
         holder.placeNameTextView.text = place.name
 
-        val base64String = place.imageBase64
+        // Usa la stessa logica che funziona altrove
+        val imageBytes = place.getImageBytes()
 
-        // Decodifica Base64 in byte[]
-        val decodedBytes = Base64.decode(base64String, Base64.DEFAULT)
-
-        // Crea bitmap dai byte decodificati
-        val bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
-
-        // Setta la bitmap nell'imageView
-        holder.imageView.setImageBitmap(bitmap)
+        if (imageBytes != null && imageBytes.isNotEmpty()) {
+            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+            if (bitmap != null) {
+                holder.imageView.setImageBitmap(bitmap)
+                holder.imageView.visibility = View.VISIBLE
+                Log.d("Adapter", "Loaded bitmap for ${place.name}, bytes=${imageBytes.size}")
+            } else {
+                Log.e("Adapter", "Bitmap decode failed for ${place.name}")
+            }
+        } else {
+            Log.w("Adapter", "No image bytes for ${place.name}")
+        }
     }
 
     override fun getItemCount(): Int = placeList.size

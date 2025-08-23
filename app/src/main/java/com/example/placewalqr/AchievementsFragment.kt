@@ -5,30 +5,30 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
-import android.widget.Toast
-
 
 class AchievementsFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var nicknameTextView: TextView
+    private lateinit var emptyMessageTextView: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        val view = inflater.inflate(R.layout.achievements_activity, container, false)
+        val view = inflater.inflate(R.layout.achievements_fragment, container, false)
 
         recyclerView = view.findViewById(R.id.achievementsRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         nicknameTextView = view.findViewById(R.id.nicknameTextView)
+        emptyMessageTextView = view.findViewById(R.id.emptyMessageTextView)
 
         fetchAchievements()
 
@@ -43,26 +43,39 @@ class AchievementsFragment : Fragment() {
         val userId = sharedPreferences.getString("id", null)
         val nickname = sharedPreferences.getString("nickname", null)
 
-        nickname?.let {
-            nicknameTextView.text = it
+        nickname?.let { nicknameTextView.text = it }
+
+        if (userId == null) {
+            showToast("User not logged in")
+            return
         }
 
-        if (userId != null) {
-            lifecycleScope.launch {
-                try {
-                    val response = RetrofitInstance.apiService.getPlacesByUser(userId)
-                    if (response.isSuccessful) {
-                        val placesList = response.body() ?: emptyList()
-                        recyclerView.adapter = AchievementAdapter(placesList)
+        lifecycleScope.launch {
+            try {
+                val response = RetrofitInstance.apiService.getPlacesByUser(userId)
+
+                if (response.isSuccessful) {
+                    val placesList = response.body() ?: emptyList()
+
+                    if (placesList.isEmpty()) {
+                        emptyMessageTextView.visibility = View.VISIBLE
+                        recyclerView.visibility = View.GONE
                     } else {
-                        showToast("Errore nel caricamento dei premi")
+                        emptyMessageTextView.visibility = View.GONE
+                        recyclerView.visibility = View.VISIBLE
+                        recyclerView.adapter = AchievementAdapter(placesList)
                     }
-                } catch (e: Exception) {
-                    showToast("Errore di connessione")
+
+                } else {
+                    when (response.code()) {
+                        400 -> showToast("User ID parameter is missing")
+                        500 -> showToast("Server error, please try again later")
+                        else -> showToast("Unknown error occurred")
+                    }
                 }
+            } catch (e: Exception) {
+                showToast("Connection error, please check your internet")
             }
-        } else {
-            showToast("Utente non loggato")
         }
     }
 

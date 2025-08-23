@@ -126,4 +126,7 @@
 
     <string name="fab_content_description">My location</string>
 
+    <string name="no_achievements">No visited places yet</string>
+
+
 </resources>

@@ -12,12 +12,11 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
 
-class LeaderboardFragment : Fragment(R.layout.leaderboard_activity) {
+class LeaderboardFragment : Fragment(R.layout.leaderboard_fragment) {
 
     private lateinit var leaderboardRecyclerView: RecyclerView
     private lateinit var adapter: LeaderboardAdapter
 
-    // Views per la card dell’utente
     private lateinit var userPositionText: TextView
     private lateinit var userNicknameText: TextView
     private lateinit var userScoreText: TextView
@@ -25,11 +24,9 @@ class LeaderboardFragment : Fragment(R.layout.leaderboard_activity) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Inizializza RecyclerView
         leaderboardRecyclerView = view.findViewById(R.id.leaderboard_recycler_view)
         leaderboardRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        // Inizializza card utente
         userPositionText = view.findViewById(R.id.user_position)
         userNicknameText = view.findViewById(R.id.user_nickname)
         userScoreText = view.findViewById(R.id.user_score)
@@ -38,43 +35,54 @@ class LeaderboardFragment : Fragment(R.layout.leaderboard_activity) {
     }
 
     private fun fetchLeaderboard() {
-        val sharedPreferences = requireActivity().getSharedPreferences("UserPrefs", android.content.Context.MODE_PRIVATE)
+        val sharedPreferences = requireActivity().getSharedPreferences(
+            "UserPrefs",
+            android.content.Context.MODE_PRIVATE
+        )
         val nickname = sharedPreferences.getString("nickname", null)
 
         if (nickname == null) {
-            showToast("Utente non loggato")
+            showToast("User not logged in")
             return
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
+            val leaderboardData: List<LeaderboardEntry>
+
             try {
-                // Chiamata API con parametro nickname
                 val response = RetrofitInstance.apiService.getLeaderboard(nickname)
-                if (response.isSuccessful && response.body() != null) {
-                    val leaderboardData = response.body()!!
-
-                    if (leaderboardData.isNotEmpty()) {
-                        // Trova l’entry corrispondente all’utente loggato
-                        val userEntry = leaderboardData.find { it.nickname == nickname }
-
-                        userEntry?.let {
-                            userPositionText.text = getString(R.string.rank_format, it.position)
-                            userNicknameText.text = it.nickname
-                            userScoreText.text = getString(R.string.score_format, it.total_points)
-                        }
-
-                        // Mostra tutti gli altri (la lista intera)
-                        adapter = LeaderboardAdapter(leaderboardData)
-                        leaderboardRecyclerView.adapter = adapter
-                    }
-
-                } else {
-                    showToast("Errore nel caricamento dati")
+                if (!response.isSuccessful) {
+                    showToast("Failed to load leaderboard: ${response.code()}")
+                    return@launch
                 }
+                leaderboardData = response.body() ?: emptyList()
             } catch (e: IOException) {
-                showToast("Errore di connessione")
+                showToast("Connection error, please check your internet")
+                return@launch
             } catch (e: HttpException) {
-                showToast("Errore nel server")
+                showToast("Server error")
+                return@launch
+            }
+
+            if (leaderboardData.isEmpty()) {
+                showToast("No leaderboard entries found")
+                return@launch
+            }
+
+            // Trova l’entry dell’utente loggato
+            val userEntry = leaderboardData.find { it.nickname == nickname }
+
+            // Top 10 escluso l’utente loggato
+            val topEntries = leaderboardData.filter { it.nickname != nickname }
+
+            adapter = LeaderboardAdapter(topEntries)
+            leaderboardRecyclerView.adapter = adapter
+
+            // Mostra la card dell’utente loggato separata
+            userEntry?.let {
+                userPositionText.text = getString(R.string.rank_format, it.position)
+                userNicknameText.text = it.nickname
+                userScoreText.text = getString(R.string.score_format, it.total_points)
             }
         }
     }

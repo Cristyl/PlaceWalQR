@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    tools:context=".AchievementsActivity">
+    tools:context=".AchievementsFragment">
 
     <TextView
         android:id="@+id/appTitle"
@@ -41,5 +41,16 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:scrollbars="vertical" />
+
+    <TextView
+        android:id="@+id/emptyMessageTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/no_achievements"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:visibility="gone"
+        android:paddingTop="16dp"/>
+
 
 </LinearLayout>
