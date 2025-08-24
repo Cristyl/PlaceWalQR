@@ -1,100 +1,72 @@
 package com.example.placewalqr
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.widget.Button
-import android.widget.Switch
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
+import androidx.compose.ui.unit.sp
 import com.example.placewalqr.ui.theme.PlaceWalQRTheme
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
 
-class MainActivity : ComponentActivity() {
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LoginScreen(
+    onNavigateToRegister: () -> Unit,
+    onNavigateToBase: () -> Unit
+) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
-    private lateinit var mainLabel: TextView
-    private lateinit var emailField: TextView
-    private lateinit var pwdField: TextView
-    private lateinit var loginBtn: Button
-    private lateinit var rememberMeSwitch: Switch
-    private lateinit var forgotPwd: TextView
-    private lateinit var registerText: TextView
+    // stati delle variabili
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var rememberMe by remember { mutableStateOf(true) }
+    var isLoading by remember { mutableStateOf(false) }
 
-    private lateinit var composeProgressIndicator: ComposeView
-    private var isLoadingState by mutableStateOf(false)
+    // recupera valori precedentemente usati per loggare se persistenti
+    LaunchedEffect(Unit) {
+        val preferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
 
+        // salva i dati prima di rimuoverli dalla memoria
+        val editor = preferences.edit()
+        val savedRememberMe = preferences.getBoolean("remember_me", true)
+        val savedEmail = preferences.getString("email", "")
+        val savedPassword = preferences.getString("password", "")
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        editor.clear().apply()
+        editor.putBoolean("remember_me", savedRememberMe).apply()
 
-        mainLabel = findViewById(R.id.main_label)
-        emailField = findViewById(R.id.email_field)
-        pwdField = findViewById(R.id.pwd_field)
-        forgotPwd = findViewById(R.id.forgot_pwd_text)
-        rememberMeSwitch = findViewById(R.id.remember_me_switch)
-        registerText = findViewById(R.id.register_text)
-        loginBtn = findViewById(R.id.btnLogin)
-        composeProgressIndicator = findViewById(R.id.compose_progress_indicator)
-
-        composeProgressIndicator.setContent {
-            PlaceWalQRTheme {
-                IndeterminateCircularIndicator(isLoading = isLoadingState)
-            }
+        if (savedRememberMe) {
+            rememberMe = true
+            email = savedEmail ?: ""
+            password = savedPassword ?: ""
         }
-
-        rememberMeSwitch.setOnCheckedChangeListener { _, isChecked ->
-            getSharedPreferences("UserPrefs", MODE_PRIVATE).edit().putBoolean("remember_me", isChecked).apply()
-        }
-
-        var preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE)
-
-        if(preferences.getBoolean("remember_me", true)) {
-            rememberMeSwitch.setChecked(true)
-            emailField.setText(preferences.getString("email",""))
-            pwdField.setText(preferences.getString("password", ""))
-        }
-
-        // cancello tutti i dati usati nella sessione precedente
-        getSharedPreferences("UserPrefs", MODE_PRIVATE).edit().clear().apply()
-        getSharedPreferences("UserPrefs", MODE_PRIVATE).edit().putBoolean("remember_me", true).apply()
-
-        forgotPwd.setOnClickListener {
-            //TODO
-        }
-
-        loginBtn.setOnClickListener {
-            remoteLogin()
-        }
-
-        registerText.setOnClickListener {
-            var intent = Intent(this, RegisterActivity::class.java)
-            startActivity(intent)
-        }
-
     }
 
-    private fun remoteLogin() {
-        val email = emailField.text.toString()
-        val password = pwdField.text.toString()
-        val editor = getSharedPreferences("UserPrefs", MODE_PRIVATE).edit()
+    // funzione di login
+    fun performLogin() {
+        val editor = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE).edit()
 
-        if(rememberMeSwitch.isChecked) {
+        if (rememberMe) {
             editor.putString("email", email)
             editor.putString("password", password)
             editor.putBoolean("remember_me", true)
@@ -104,18 +76,16 @@ class MainActivity : ComponentActivity() {
 
         val loginRequest = LoginRequest(email, password)
 
-        lifecycleScope.launch {
-            isLoadingState = true
-            composeProgressIndicator.visibility = View.VISIBLE
+        coroutineScope.launch {
+            isLoading = true
 
             try {
                 val response = RetrofitInstance.apiService.login(loginRequest)
 
-
                 if (response.isSuccessful && response.body() != null) {
                     val userInfo = response.body()!!
 
-                    // storing user information for future uses
+                    // recupera info dell'utente storate in precedenza
                     editor.putString("id", userInfo.id.toString())
                     editor.putString("name", userInfo.name)
                     editor.putString("surname", userInfo.surname)
@@ -124,37 +94,189 @@ class MainActivity : ComponentActivity() {
                     editor.putString("nickname", userInfo.nickname)
                     editor.apply()
 
-                    var intent = Intent(this@MainActivity, BaseActivity::class.java)
-                    startActivity(intent)
-                    finish()
+                    onNavigateToBase()
                 } else {
-                    Log.e("MainActivity", "Error during login: ${response.errorBody()?.string()}")
-                    Toast.makeText(baseContext, "Error during data fetching", Toast.LENGTH_SHORT).show()
+                    Log.e("LoginScreen", "Error during login: ${response.errorBody()?.string()}")
+                    Toast.makeText(context, "Error during data fetching", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: IOException) {
-                Log.e("MainActivity", "IO Exception: ${e.message}")
-                Toast.makeText(baseContext, "Connection error", Toast.LENGTH_SHORT).show()
+                Log.e("LoginScreen", "IO Exception: ${e.message}")
+                Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show()
             } catch (e: HttpException) {
-                Log.e("MainActivity", "HTTP Exception: ${e.message}")
-                Toast.makeText(baseContext, "Server error", Toast.LENGTH_SHORT).show()
+                Log.e("LoginScreen", "HTTP Exception: ${e.message}")
+                Toast.makeText(context, "Server error", Toast.LENGTH_SHORT).show()
             } finally {
-                isLoadingState = false
-                composeProgressIndicator.visibility = View.GONE
+                isLoading = false
+            }
+        }
+    }
+
+    // UI
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // titolo app
+        Text(
+            text = "PlaceWalQR",
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(48.dp))
+
+        // campo per email
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading,
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // campo per password
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Password") },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading,
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // switch per rememberMe
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Switch(
+                checked = rememberMe,
+                onCheckedChange = {
+                    rememberMe = it
+                    context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+                        .edit()
+                        .putBoolean("remember_me", it)
+                        .apply()
+                },
+                enabled = !isLoading,
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Remember me",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // bottone di login
+        Button(
+            onClick = { performLogin() },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading && email.isNotBlank() && password.isNotBlank()
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    strokeWidth = 2.dp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Text(
+                text = if (isLoading) "Logging in..." else "LOGIN",
+                fontSize = 16.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // link per password dimenticata, da rivedere
+        TextButton(
+            onClick = {
+                // TODO: Implement forgot password
+                Toast.makeText(context, "Forgot password feature coming soon", Toast.LENGTH_SHORT).show()
+            },
+            enabled = !isLoading
+        ) {
+            Text(
+                text = "Forgot password?",
+                textDecoration = TextDecoration.Underline
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // link di registrazione
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Don't have an account? ",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            TextButton(
+                onClick = onNavigateToRegister,
+                enabled = !isLoading
+            ) {
+                Text(
+                    text = "Register here",
+                    textDecoration = TextDecoration.Underline,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
 
+        // Loading indicator overlay
+        if (isLoading) {
+            Spacer(modifier = Modifier.height(24.dp))
+            CircularProgressIndicator(
+                modifier = Modifier.size(32.dp),
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
     }
+}
 
+// classe per login
+class MainActivity : ComponentActivity() {
 
-    @Composable
-    fun IndeterminateCircularIndicator(isLoading: Boolean) {
-        if (!isLoading) return // Se non sta caricando, non mostrare nulla
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-        CircularProgressIndicator(
-            modifier = Modifier.width(64.dp),
-            color = MaterialTheme.colorScheme.secondary,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant,
-        )
+        setContent {
+            PlaceWalQRTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    LoginScreen(
+                        onNavigateToRegister = {
+                            val intent = Intent(this@MainActivity, RegisterActivity::class.java)
+                            startActivity(intent)
+                        },
+                        onNavigateToBase = {
+                            val intent = Intent(this@MainActivity, BaseActivity::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
+                    )
+                }
+            }
+        }
     }
-
 }

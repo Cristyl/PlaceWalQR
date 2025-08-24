@@ -1,7 +1,6 @@
 package com.example.placewalqr
 
 import android.os.Bundle
-import android.widget.FrameLayout
 import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -47,8 +46,10 @@ class BaseActivity : AppCompatActivity() {
             }
         }
 
+        // ATTENZIONE: modificato il contenuto di navigateToFragment
+        // per gestire frammento convertito in grafica Jetpack Compose
         btnCamera.setOnClickListener {
-            navigateToFragment(CameraFragment())
+            navigateToFragment(CameraComposeFragment())
         }
     }
 
