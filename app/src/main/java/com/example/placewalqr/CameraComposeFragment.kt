@@ -603,34 +603,47 @@ fun CameraScreen(
 
         // etichetta per luogo
         Text(
-            text = "Place:",
+            text = "Info:",
             fontSize = 20.sp,
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // nome luogo
-        Text(
-            text = if (showPlaceDetails) placeName else placeDetected,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // informazioni sul luogo
-        if (showPlaceDetails && placeInfo.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(8.dp))
+        Card (
+            modifier = Modifier
+                .fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        ) {
+            // nome luogo
             Text(
-                text = placeInfo,
-                fontSize = 16.sp,
-                fontStyle = FontStyle.Italic,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.fillMaxWidth()
+                text = if (showPlaceDetails) placeName else placeDetected,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
             )
-        }
 
+            // informazioni sul luogo
+            if (showPlaceDetails && placeInfo.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = placeInfo,
+                    fontSize = 16.sp,
+                    fontStyle = FontStyle.Italic,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            start = 8.dp,
+                            end = 8.dp,
+                            bottom = 8.dp
+                        )
+                )
+        }
+}
         Spacer(modifier = Modifier.weight(1f))
 
         // bottoni vari
