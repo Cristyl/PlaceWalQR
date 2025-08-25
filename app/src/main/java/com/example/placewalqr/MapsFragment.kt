@@ -208,11 +208,11 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
                 // Image
                 val imageBytes = place.getImageBytes()
                 if (imageBytes != null && imageBytes.isNotEmpty()) {
-                    val bitmap = resizeBitmap(imageBytes, 150, 150)
+                    val bitmap = loadBitmap(imageBytes)
                     if (bitmap != null) {
                         Image(
                             bitmap = bitmap.asImageBitmap(),
-                            contentDescription = "Foto del luogo",
+                            contentDescription = "Place photo",
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(120.dp)
@@ -353,55 +353,6 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
             isInfoWindowVisible = false
             selectedPlace = null
         }
-//        mMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter{
-//            override fun getInfoContents(marker: Marker): View? {
-//                return null
-//            }
-//
-//            override fun getInfoWindow(marker: Marker): View? {
-//                val infoView=layoutInflater.inflate(R.layout.custom_info_window, null)
-//
-//                val titleTextView = infoView.findViewById<TextView>(R.id.title_marker)
-//                val descriptionView= infoView.findViewById<TextView>(R.id.description_marker)
-//                val photoImageView=infoView.findViewById<ImageView>(R.id.photo_marker)
-//                val visitedTextView=infoView.findViewById<TextView>(R.id.status_marker)
-//                val coordinatesTextView=infoView.findViewById<TextView>(R.id.coordinates_marker)
-//
-//                val placeData=marker.tag as? VisitedPlaceResponse
-//                if(placeData!=null){
-//                    titleTextView.text=placeData.name
-//                    descriptionView.text=placeData.information
-//                    if(placeData.visited){
-//                        visitedTextView.text = "Visited"
-//                        visitedTextView.setTextColor(Color.GREEN)
-//                    }else{
-//                        visitedTextView.text="Not visited yet"
-//                        visitedTextView.setTextColor(Color.RED)
-//                    }
-//                    coordinatesTextView.text=placeData.latitude.toString() + ", " + placeData.longitude.toString()
-//
-//                    val imageBytes=placeData.getImageBytes()
-//                    if (imageBytes!=null && imageBytes.isNotEmpty()){
-//                        val bitmap= resizeBitmap(imageBytes, 150, 150)
-//                        if(bitmap!=null){
-//                            photoImageView.setImageBitmap(bitmap)
-//                            photoImageView.visibility= View.VISIBLE
-//                        }else{
-//                            photoImageView.visibility=View.GONE
-//                            Log.w("InfoWindow", "Fail to load image ${placeData.name}")
-//                        }
-//                    }else{
-//                        photoImageView.visibility=View.GONE
-//                    }
-//                }else{
-//                    titleTextView.text=marker.title
-//                    descriptionView.text=marker.title
-//                    photoImageView.visibility= View.GONE
-//                }
-//
-//                return infoView
-//            }
-//        })
     }
 
     private fun createLocationRequest() {
@@ -581,39 +532,13 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
         Log.d("PlaceMarker", "Place marker position: ${marker?.position}")
     }
 
-    //keep for manually centering the current position
-    private fun centerOnCurrentLocation(){
-        if(!checkLocationPermission()){
-            requestLocationPermission()
-            return
-        }
-    }
-
-    private fun resizeBitmap(byteArray: ByteArray, maxWidth: Int, maxHeight: Int): Bitmap? {
+    private fun loadBitmap(byteArray: ByteArray): Bitmap? {
         return try {
-            val options = BitmapFactory.Options().apply {
-                inJustDecodeBounds = true
-            }
-            BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size, options)
-
-            val scaleFactor = minOf(options.outWidth / maxWidth, options.outHeight / maxHeight).coerceAtLeast(1)
-            val finalOptions = BitmapFactory.Options().apply {
-                inSampleSize = scaleFactor
-                inJustDecodeBounds = false
-            }
-
-            BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size, finalOptions)
-
+            BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
         } catch (e: Exception) {
-            Log.e("Bitmap resize", "Error: ${e.message}")
+            Log.e("Bitmap load", "Error: ${e.message}")
             null
         }
-    }
-
-    private fun isValidImageData(imageData: ByteArray?): Boolean {
-        return imageData != null &&
-                imageData.isNotEmpty() &&
-                imageData.size > 100 // Minimo 100 bytes per un'immagine valida
     }
 
     override fun onResume() {
