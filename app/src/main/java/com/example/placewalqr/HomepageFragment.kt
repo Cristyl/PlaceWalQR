@@ -2,12 +2,54 @@ package com.example.placewalqr
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.VIEW_MODEL_STORE_OWNER_KEY
 import androidx.lifecycle.lifecycleScope
@@ -17,86 +59,302 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
     lateinit var user: String
     lateinit var email: String
     private var id=0
-    private var see_sights=0
-    private var points=0
-    private var last_place=""
-    private lateinit var points_label: TextView
-    private lateinit var seesights_label: TextView
-    private lateinit var lastplace_label: TextView
-    private lateinit var photoImageView: ImageView
-    private lateinit var logoutBtn: Button
-    private lateinit var novisited_txt: TextView
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?){
-        super.onViewCreated(view, savedInstanceState)
-        loadHomePage()
-
-        val welcome_label = view.findViewById<TextView>(R.id.welcome_label)
-        val welcome_text=welcome_label.text.toString() +" "+ user
-        welcome_label.setText(welcome_text)
-
-        seesights_label = view.findViewById<TextView>(R.id.seesights)
-        points_label= view.findViewById<TextView>(R.id.points)
-        lastplace_label= view.findViewById<TextView>(R.id.lastplace)
-        novisited_txt=view.findViewById<TextView>(R.id.no_visited)
-        photoImageView=view.findViewById<ImageView>(R.id.photo_visited)
-        photoImageView.visibility=View.GONE
-        logoutBtn=view.findViewById<Button>(R.id.logout_btn)
-        logoutBtn.setOnClickListener {
-            val intent = Intent(requireContext(), MainActivity::class.java)
-            startActivity(intent)
-            requireActivity().finish()
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return ComposeView(requireContext()).apply {
+            setContent {
+                MaterialTheme {
+                    HomepageComposeContent()
+                }
+            }
         }
     }
 
-    private fun loadHomePage(){
-        val sharedPreferences=requireContext().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        user=sharedPreferences.getString("nickname", "").toString()
-        email=sharedPreferences.getString("email", "").toString()
-        id=sharedPreferences.getString("id", "0").toString().toInt()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?){
+        super.onViewCreated(view, savedInstanceState)
+        loadUserData()
+    }
 
-        lifecycleScope.launch {
-            try {
-                val responsePoint= RetrofitInstance.apiService.getPointsById(id)
-                val responsePlace = RetrofitInstance.apiService.findLastPlaceById(id)
+    private fun loadUserData() {
+        val sharedPreferences = requireContext().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        user = sharedPreferences.getString("nickname", "").toString()
+        email = sharedPreferences.getString("email", "").toString()
+        id = sharedPreferences.getString("id", "0").toString().toInt()
+    }
 
-                if(responsePoint.code()==200){
-                    seesights_label.visibility= View.VISIBLE
-                    points_label.visibility= View.VISIBLE
-                    lastplace_label.visibility= View.VISIBLE
-                    novisited_txt.visibility= View.GONE
-                    val body=responsePoint.body()
-                    points= body?.points ?: 0
-                    val pointsText=points_label.text.toString() + " " + points.toString()
-                    points_label.setText(pointsText)
-                    see_sights=body?.count ?: 0
-                    val seeSightText=seesights_label.text.toString() + " " + see_sights.toString()
-                    seesights_label.setText(seeSightText)
-                }else if(responsePoint.code()==404){
-                    seesights_label.visibility= View.GONE
-                    points_label.visibility= View.GONE
-                    lastplace_label.visibility= View.GONE
-                    novisited_txt.visibility= View.VISIBLE
-                    photoImageView.visibility= View.GONE
+
+    private suspend fun loadHomePageData(
+        onDataLoaded: (points: Int, sights: Int, lastPlace: String, image: Bitmap?) -> Unit
+    ) {
+        try {
+            val responsePoint = RetrofitInstance.apiService.getPointsById(id)
+            val responsePlace = RetrofitInstance.apiService.findLastPlaceById(id)
+
+            var points = 0
+            var sights = 0
+            var lastPlace = ""
+            var image: Bitmap? = null
+
+            if (responsePoint.code() == 200) {
+                val body = responsePoint.body()
+                points = body?.points ?: 0
+                sights = body?.count ?: 0
+            }
+
+            if (responsePlace.code() == 200) {
+                val body = responsePlace.body()
+                lastPlace = body?.name ?: "None"
+
+                val imageBytes = body?.getImageBytes()
+                if (imageBytes != null && imageBytes.isNotEmpty()) {
+                    image = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
                 }
+            }
 
-                if(responsePlace.code()==200){
-                    val body=responsePlace.body()
-                    last_place=body?.name?:"None"
-                    val lastPlaceText=lastplace_label.text.toString() + " " + last_place
-                    lastplace_label.setText(lastPlaceText)
+            onDataLoaded(points, sights, lastPlace, image)
+        } catch (e: Exception) {
+            onDataLoaded(0, 0, "", null)
+        }
+    }
 
-                    val imageBytes=body?.getImageBytes()
-                    if(imageBytes!=null && imageBytes.isNotEmpty()){
-                        val bitmap= BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-                        if(bitmap!=null){
-                            photoImageView.setImageBitmap(bitmap)
-                            photoImageView.visibility= View.VISIBLE
-                        }
-                    }
+    @Composable
+    private fun HomepageComposeContent(){
+        var isLoading by remember { mutableStateOf(true) }
+        var hasVisitedPlaces by remember { mutableStateOf(false) }
+        var userPoints by remember { mutableIntStateOf(0) }
+        var userSights by remember { mutableIntStateOf(0) }
+        var userLastPlace by remember { mutableStateOf("") }
+        var userImage by remember { mutableStateOf<Bitmap?>(null) }
+
+        LaunchedEffect(Unit) {
+            loadHomePageData { points, sights, lastPlace, image ->
+                userPoints = points
+                userSights = sights
+                userLastPlace = lastPlace
+                userImage = image
+                hasVisitedPlaces = points > 0 || sights > 0
+                isLoading = false
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Header con benvenuto
+            WelcomeHeader(user = if (::user.isInitialized) user else "")
+
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.padding(32.dp)
+                )
+            } else if (hasVisitedPlaces) {
+                StatsSection(points = userPoints, sights = userSights)
+
+                LastPlaceSection(
+                    placeName = userLastPlace,
+                    placeImage = userImage
+                )
+            } else {
+                NoVisitedPlacesSection()
+            }
+
+            LogoutButton {
+                val intent = Intent(requireContext(), MainActivity::class.java)
+                startActivity(intent)
+                requireActivity().finish()
+            }
+        }
+    }
+
+    @Composable
+    private fun LogoutButton(onLogout: () -> Unit) {
+        OutlinedButton(
+            onClick = onLogout,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                contentDescription = null,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Text("Logout")
+        }
+    }
+
+    @Composable
+    private fun NoVisitedPlacesSection() {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(64.dp)
+                        .padding(bottom = 16.dp),
+                    tint = MaterialTheme.colorScheme.outline
+                )
+                Text(
+                    text = "No places visited yet",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "Start exploring to see your progress",
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun LastPlaceSection(placeName: String, placeImage: Bitmap?) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "Last place visited",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                Text(
+                    text = placeName.ifEmpty { "No place visited" },
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                placeImage?.let { bitmap ->
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = "Last place visited photo",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentScale = ContentScale.Crop
+                    )
                 }
-            }catch (e: Exception){
+            }
+        }
+    }
 
+    @Composable
+    fun StatsSection(points: Int, sights: Int) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            StatCard(
+                icon = Icons.Default.Star,
+                title = "Points",
+                value = points.toString(),
+                modifier = Modifier.weight(1f)
+            )
+            StatCard(
+                icon = Icons.Default.LocationOn,
+                title = "Places visited",
+                value = sights.toString(),
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+
+    @Composable
+    private fun StatCard(
+        icon: androidx.compose.ui.graphics.vector.ImageVector,
+        title: String,
+        value: String,
+        modifier: Modifier = Modifier
+    ) {
+        Card(
+            modifier = modifier,
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .padding(bottom = 8.dp)
+                )
+                Text(
+                    text = value,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = title,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun WelcomeHeader(user: String) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Welcome${if (user.isNotEmpty()) ", $user" else ""}!",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                if (::email.isInitialized && email.isNotEmpty()) {
+                    Text(
+                        text = email,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }

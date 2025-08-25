@@ -64,6 +64,7 @@ dependencies {
 
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.ui)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
