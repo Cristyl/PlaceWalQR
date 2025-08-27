@@ -90,7 +90,6 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
     private var isInfoWindowVisible by mutableStateOf(false)
 
     companion object{
-        private const val LOCATION_PERMISSION_REQUEST_CODE=1
         private const val DEFAULT_ZOOM=15f
     }
     private val locationPermissionRequest =registerForActivityResult(

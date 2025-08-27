@@ -348,13 +348,6 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
-                if (::email.isInitialized && email.isNotEmpty()) {
-                    Text(
-                        text = email,
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
         }
     }
