@@ -52,6 +52,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
+    implementation("androidx.compose.material:material-icons-extended:<compose_version>")
+
     implementation("androidx.camera:camera-core:1.2.2")
     implementation("androidx.camera:camera-camera2:1.2.2")
     implementation("androidx.camera:camera-lifecycle:1.2.2")

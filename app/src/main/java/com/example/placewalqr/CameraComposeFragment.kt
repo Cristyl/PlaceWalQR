@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontStyle
@@ -71,7 +72,7 @@ class CameraComposeFragment : Fragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                PlaceWalQRTheme {
+                PlaceWalQRTheme (darkTheme = false) {
                     CameraScreen(
                         onNavigateToHome = {
                             parentFragmentManager.beginTransaction()
@@ -285,6 +286,7 @@ fun CameraScreen(
         val current = LocalDateTime.now().format(formatter).toString()
 
         coroutineScope.launch {
+            isLoading = true
             // effettua richiesta al backend inviando l'id del luogo e l'id dell'utente
             try {
                 val visitPlaceRequest = VisitPlaceRequest(lastRawValue.toInt(), userId, current)
@@ -332,6 +334,8 @@ fun CameraScreen(
                 Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show()
             } catch (e: HttpException) {
                 Toast.makeText(context, "Server error", Toast.LENGTH_SHORT).show()
+            } finally{
+                isLoading = false
             }
         }
     }
@@ -402,12 +406,17 @@ fun CameraScreen(
             .padding(16.dp)
     ) {
         // titolo app
-        Text(
-            text = "PlaceWalQR",
-            fontSize = 24.sp,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.headlineMedium
+//        Text(
+//            text = "PlaceWalQR",
+//            fontSize = 24.sp,
+//            modifier = Modifier.fillMaxWidth(),
+//            textAlign = TextAlign.Center,
+//            style = MaterialTheme.typography.headlineMedium
+//        )
+        Image(
+            painter = painterResource(id = R.drawable.placewalqr_logo),
+            modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally),
+            contentDescription = "App Logo"
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -587,16 +596,6 @@ fun CameraScreen(
                     contentScale = ContentScale.Crop
                 )
             }
-
-            // semplice "rotella" di caricamento
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.secondary
-                )
-            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -651,6 +650,15 @@ fun CameraScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth()
         ) {
+            // semplice "rotella" di caricamento
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .align(Alignment.CenterHorizontally),
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
             // per visitare il luogo
             if (!showPlaceDetails && !souvenirMode) {
                 Button(
@@ -678,8 +686,11 @@ fun CameraScreen(
 
             // scattare foto ricordo
             if (souvenirMode && !showConfirmButtons) {
+                placeDetected = "Save this moment with a photo!"
                 Button(
-                    onClick = { takePhoto() },
+                    onClick = {
+                        takePhoto()
+                              },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("TAKE THE PHOTO")

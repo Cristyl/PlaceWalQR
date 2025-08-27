@@ -7,19 +7,26 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.placewalqr.ui.theme.PlaceWalQRTheme
@@ -120,12 +127,10 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
         // titolo app
-        Text(
-            text = "PlaceWalQR",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+        Image(
+            painter = painterResource(id = R.drawable.placewalqr_logo),
+            modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally),
+            contentDescription = "App Logo"
         )
 
         Spacer(modifier = Modifier.height(48.dp))
@@ -143,16 +148,41 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        var showPassword by remember { mutableStateOf(false) }
         // campo per password
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
             label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth(),
             enabled = !isLoading,
-            singleLine = true
+            singleLine = true,
+            visualTransformation =
+                if(showPassword){
+                    VisualTransformation.None
+                }
+                else {
+                    PasswordVisualTransformation()
+                },
+            trailingIcon = {
+                if (showPassword) {
+                    IconButton(onClick = { showPassword = false }) {
+                        Icon(
+                            imageVector = Icons.Filled.Visibility,
+                            contentDescription = "hide_password"
+                        )
+                    }
+                } else {
+                    IconButton(
+                        onClick = { showPassword = true }) {
+                        Icon(
+                            imageVector = Icons.Filled.VisibilityOff,
+                            contentDescription = "hide_password"
+                        )
+                    }
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -259,7 +289,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            PlaceWalQRTheme {
+            PlaceWalQRTheme(darkTheme = false) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -18,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -67,6 +69,7 @@ fun RegisterScreen(
 
         val datePickerDialog = DatePickerDialog(
             context,
+            android.R.style.Theme_Holo_Light_Dialog,
             { _, selectedYear, selectedMonth, selectedDay ->
                 val selectedDate = Calendar.getInstance()
                 selectedDate.set(selectedYear, selectedMonth, selectedDay)
@@ -201,6 +204,11 @@ fun RegisterScreen(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Image(
+            painter = painterResource(id = R.drawable.placewalqr_logo),
+            modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally),
+            contentDescription = "App Logo"
+        )
         // titolo
         Text(
             text = "Create Account",
