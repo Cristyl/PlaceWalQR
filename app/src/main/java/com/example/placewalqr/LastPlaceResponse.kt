@@ -7,6 +7,7 @@ data class LastPlaceResponse(
     val place_id: Int,
     val name: String,
     val information: String,
+    val point: Int,
     val date: String,
     val image: String?
 ){

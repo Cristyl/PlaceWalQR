@@ -15,6 +15,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -88,7 +89,7 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
 
 
     private suspend fun loadHomePageData(
-        onDataLoaded: (points: Int, sights: Int, lastPlace: String, image: Bitmap?) -> Unit
+        onDataLoaded: (points: Int, sights: Int, lastPlace: String, image: Bitmap?, place_points:Int) -> Unit
     ) {
         try {
             val responsePoint = RetrofitInstance.apiService.getPointsById(id)
@@ -98,6 +99,7 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
             var sights = 0
             var lastPlace = ""
             var image: Bitmap? = null
+            var place_points=0
 
             if (responsePoint.code() == 200) {
                 val body = responsePoint.body()
@@ -108,6 +110,7 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
             if (responsePlace.code() == 200) {
                 val body = responsePlace.body()
                 lastPlace = body?.name ?: "None"
+                place_points=body?.point?:0
 
                 val imageBytes = body?.getImageBytes()
                 if (imageBytes != null && imageBytes.isNotEmpty()) {
@@ -115,9 +118,9 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
                 }
             }
 
-            onDataLoaded(points, sights, lastPlace, image)
+            onDataLoaded(points, sights, lastPlace, image, place_points)
         } catch (e: Exception) {
-            onDataLoaded(0, 0, "", null)
+            onDataLoaded(0, 0, "", null, 0)
         }
     }
 
@@ -129,15 +132,17 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
         var userSights by remember { mutableIntStateOf(0) }
         var userLastPlace by remember { mutableStateOf("") }
         var userImage by remember { mutableStateOf<Bitmap?>(null) }
+        var placePoints by remember { mutableStateOf(0) }
 
         LaunchedEffect(Unit) {
-            loadHomePageData { points, sights, lastPlace, image ->
+            loadHomePageData { points, sights, lastPlace, image, place_points ->
                 userPoints = points
                 userSights = sights
                 userLastPlace = lastPlace
                 userImage = image
                 hasVisitedPlaces = points > 0 || sights > 0
                 isLoading = false
+                placePoints=place_points
             }
         }
 
@@ -160,7 +165,8 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
 
                 LastPlaceSection(
                     placeName = userLastPlace,
-                    placeImage = userImage
+                    placeImage = userImage,
+                    placePoints= placePoints
                 )
             } else {
                 NoVisitedPlacesSection()
@@ -228,7 +234,7 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
     }
 
     @Composable
-    private fun LastPlaceSection(placeName: String, placeImage: Bitmap?) {
+    private fun LastPlaceSection(placeName: String, placeImage: Bitmap?, placePoints:Int) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -238,19 +244,41 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
-                Text(
-                    text = "Last place visited",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+                Row {
+                    Text(
+                        text = "Last place visited",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
 
-                Text(
-                    text = placeName.ifEmpty { "No place visited" },
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
+                    Spacer(modifier = Modifier.padding(4.dp))
+
+                    Text(
+                        text = placeName.ifEmpty { "No place visited" },
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+
+                    Spacer(modifier = Modifier.padding(8.dp))
+
+                    Text(
+                        text = "Points",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    Spacer(modifier = Modifier.padding(4.dp))
+
+                    Text(
+                        text = placePoints.toString(),
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                }
 
                 placeImage?.let { bitmap ->
                     Image(
