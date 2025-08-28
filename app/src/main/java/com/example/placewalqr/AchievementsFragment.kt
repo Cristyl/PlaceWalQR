@@ -1,85 +1,168 @@
 package com.example.placewalqr
 
-import android.os.Bundle
+import android.content.Context
+import android.graphics.BitmapFactory
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import android.widget.Toast
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import android.os.Bundle
 
 class AchievementsFragment : Fragment() {
 
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var nicknameTextView: TextView
-    private lateinit var emptyMessageTextView: TextView
-
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.achievements_fragment, container, false)
-
-        recyclerView = view.findViewById(R.id.achievementsRecyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
-
-        nicknameTextView = view.findViewById(R.id.nicknameTextView)
-        emptyMessageTextView = view.findViewById(R.id.emptyMessageTextView)
-
-        fetchAchievements()
-
-        return view
-    }
-
-    private fun fetchAchievements() {
-        val sharedPreferences = requireActivity().getSharedPreferences(
-            "UserPrefs",
-            android.content.Context.MODE_PRIVATE
-        )
-        val userId = sharedPreferences.getString("id", null)
-        val nickname = sharedPreferences.getString("nickname", null)
-
-        nickname?.let { nicknameTextView.text = it }
-
-        if (userId == null) {
-            showToast("User not logged in")
-            return
-        }
-
-        lifecycleScope.launch {
-            try {
-                val response = RetrofitInstance.apiService.getPlacesByUser(userId)
-
-                if (response.isSuccessful) {
-                    val placesList = response.body() ?: emptyList()
-
-                    if (placesList.isEmpty()) {
-                        emptyMessageTextView.visibility = View.VISIBLE
-                        recyclerView.visibility = View.GONE
-                    } else {
-                        emptyMessageTextView.visibility = View.GONE
-                        recyclerView.visibility = View.VISIBLE
-                        recyclerView.adapter = AchievementAdapter(placesList)
-                    }
-
-                } else {
-                    when (response.code()) {
-                        400 -> showToast("User ID parameter is missing")
-                        500 -> showToast("Server error, please try again later")
-                        else -> showToast("Unknown error occurred")
-                    }
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setContent {
+                MaterialTheme {
+                    AchievementsScreen()
                 }
-            } catch (e: Exception) {
-                showToast("Connection error, please check your internet")
             }
         }
     }
 
-    private fun showToast(message: String) {
-        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    @Composable
+    fun AchievementsScreen() {
+        var isLoading by remember { mutableStateOf(true) }
+        var places by remember { mutableStateOf<List<Place>>(emptyList()) }
+        var nickname by remember { mutableStateOf("") }
+        var errorMessage by remember { mutableStateOf<String?>(null) }
+
+        LaunchedEffect(Unit) {
+            val sharedPreferences = requireActivity().getSharedPreferences(
+                "UserPrefs",
+                Context.MODE_PRIVATE
+            )
+            val userId = sharedPreferences.getString("id", null)
+            nickname = sharedPreferences.getString("nickname", "") ?: ""
+
+            if (userId == null) {
+                errorMessage = "User not logged in"
+                isLoading = false
+                return@LaunchedEffect
+            }
+
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitInstance.apiService.getPlacesByUser(userId)
+                }
+
+                if (response.isSuccessful) {
+                    places = response.body() ?: emptyList()
+                    if (places.isEmpty()) {
+                        errorMessage = "No achievements yet"
+                    }
+                } else {
+                    errorMessage = when (response.code()) {
+                        400 -> "User ID parameter is missing"
+                        500 -> "Server error, please try again later"
+                        else -> "Unknown error occurred"
+                    }
+                }
+            } catch (e: Exception) {
+                errorMessage = "Connection error, please check your internet"
+            }
+
+            isLoading = false
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Achievements of $nickname",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            when {
+                isLoading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(32.dp)
+                    )
+                }
+
+                errorMessage != null -> {
+                    Text(
+                        text = errorMessage!!,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+                places.isNotEmpty() -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(places) { place ->
+                            AchievementCard(place)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun AchievementCard(place: Place) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = place.name,
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                place.imageBase64?.let { base64Image ->
+                    val bitmap = remember(base64Image) {
+                        try {
+                            val bytes = Base64.decode(base64Image, Base64.DEFAULT)
+                            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+                    bitmap?.let {
+                        Image(
+                            bitmap = it.asImageBitmap(),
+                            contentDescription = "Place image",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(180.dp)
+                                .padding(top = 8.dp)
+                        )
+                    }
+                }
+            }
+        }
     }
 }
