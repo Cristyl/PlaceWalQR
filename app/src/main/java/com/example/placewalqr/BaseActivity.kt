@@ -136,7 +136,7 @@ class BaseActivity : AppCompatActivity() {
                 // Achievements Tab
                 NavigationTab(
                     icon = Icons.Default.EmojiEvents,
-                    label = "Achievements",
+                    label = "Collection",
                     isSelected = currentSelectedTab == 2,
                     onClick = {
                         currentSelectedTab = 2

@@ -244,6 +244,7 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
+
                 Row {
                     Text(
                         text = "Last place visited",
@@ -260,9 +261,9 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 12.dp)
                     )
+                }
 
-                    Spacer(modifier = Modifier.padding(8.dp))
-
+                Row{
                     Text(
                         text = "Points",
                         fontSize = 18.sp,
@@ -279,7 +280,7 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
                         modifier = Modifier.padding(bottom = 12.dp)
                     )
                 }
-
+                
                 placeImage?.let { bitmap ->
                     Image(
                         bitmap = bitmap.asImageBitmap(),
