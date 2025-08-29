@@ -146,10 +146,10 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
                         .padding(horizontal = 8.dp, vertical = 32.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = getString(R.string.app_name),
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(bottom = 24.dp)
+                    Image(
+                        painter = painterResource(id = R.drawable.placewalqr_logo),
+                        modifier = Modifier.width(250.dp),
+                        contentDescription = "App Logo"
                     )
                 }
 
