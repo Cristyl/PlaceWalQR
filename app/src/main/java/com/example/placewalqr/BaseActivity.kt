@@ -75,6 +75,9 @@ class BaseActivity : AppCompatActivity() {
     // Variabile per salvare l'ID del container
     private var savedFragmentContainerId: Int = 0
 
+    // Metodo per esporre l'ID del container ai fragment
+    fun getFragmentContainerId(): Int = savedFragmentContainerId
+
     @Composable
     private fun CustomBottomNavigation() {
         Surface(
@@ -133,15 +136,15 @@ class BaseActivity : AppCompatActivity() {
                     )
                 }
 
-                // Achievements Tab
+                // Collection Tab (era Achievements)
                 NavigationTab(
-                    icon = Icons.Default.EmojiEvents,
+                    icon = Icons.Default.CollectionsBookmark,
                     label = "Collection",
                     isSelected = currentSelectedTab == 2,
                     onClick = {
                         currentSelectedTab = 2
                         lastSelectedTab = 2
-                        navigateToFragment(AchievementsFragment())
+                        navigateToFragment(CollectionFragment())
                     }
                 )
 
@@ -203,9 +206,42 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
-    @Deprecated("This method has been deprecated")
+    // Metodo pubblico per navigazione da altri fragment
+    fun navigateToDetailFragment(fragment: Fragment) {
+        navigateToFragment(fragment)
+    }
+
     override fun onBackPressed() {
-        super.onBackPressed()
-        currentSelectedTab = lastSelectedTab
+        val currentFragment = supportFragmentManager.findFragmentById(savedFragmentContainerId)
+
+        // Se siamo già sulla homepage, chiudi l'app
+        if (currentFragment is HomepageFragment && supportFragmentManager.backStackEntryCount <= 1) {
+            finish() // Chiude l'applicazione
+            return
+        }
+
+        // Controlla se c'è qualcosa nella back stack
+        if (supportFragmentManager.backStackEntryCount > 1) {
+            // C'è ancora qualcosa nella stack, procedi normalmente
+            super.onBackPressed()
+            currentSelectedTab = lastSelectedTab
+        } else {
+            // La stack è quasi vuota, vai alla homepage
+            currentSelectedTab = 0
+            lastSelectedTab = 0
+            navigateToHomepage()
+        }
+    }
+
+    private fun navigateToHomepage() {
+        // Pulisce la back stack e va alla homepage
+        supportFragmentManager.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
+
+        // Naviga alla homepage senza aggiungere alla back stack
+        if (savedFragmentContainerId != 0) {
+            supportFragmentManager.beginTransaction()
+                .replace(savedFragmentContainerId, HomepageFragment())
+                .commit() // Senza addToBackStack!
+        }
     }
 }

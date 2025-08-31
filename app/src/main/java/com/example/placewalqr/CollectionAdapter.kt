@@ -9,8 +9,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class AchievementAdapter(private val placeList: List<Place>) :
-    RecyclerView.Adapter<AchievementAdapter.AchievementViewHolder>() {
+class CollectionAdapter(private val placeList: List<Place>) :
+    RecyclerView.Adapter<CollectionAdapter.AchievementViewHolder>() {
 
     class AchievementViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val placeNameTextView: TextView = itemView.findViewById(R.id.placeName)

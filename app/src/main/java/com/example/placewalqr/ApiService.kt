@@ -51,4 +51,14 @@ interface ApiService {
 
     @GET("api/findVisitedPlaceById/{id}")
     suspend fun findVisitedPlaceById(@Path("id") user_id: Int): Response<List<VisitedPlaceResponse>>
+
+    // Aggiungi questi metodi alla tua interfaccia ApiService
+    @GET("api/collections/{userId}")
+    suspend fun getUserCollections(@Path("userId") userId: String): Response<List<Collection>>
+
+    @GET("api/collection/{collectionId}/places/{userId}")
+    suspend fun getCollectionPlaces(
+        @Path("collectionId") collectionId: Int,
+        @Path("userId") userId: String
+    ): Response<CollectionDetailResponse>
 }
