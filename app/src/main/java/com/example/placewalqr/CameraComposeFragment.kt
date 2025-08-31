@@ -62,6 +62,7 @@ import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.math.round
+import kotlin.text.replace
 
 class CameraComposeFragment : Fragment() {
 
@@ -75,9 +76,19 @@ class CameraComposeFragment : Fragment() {
                 PlaceWalQRTheme (darkTheme = false) {
                     CameraScreen(
                         onNavigateToHome = {
-                            parentFragmentManager.beginTransaction()
-                                .replace(R.id.content_frame, HomepageFragment())
-                                .commit()
+                            val activity = activity as? BaseActivity
+                            if (activity != null && !activity.isFinishing && !activity.isDestroyed && isAdded) {
+                                try {
+                                    val containerId = activity.getFragmentContainerId()
+                                    if (containerId != 0) {
+                                        parentFragmentManager.beginTransaction()
+                                            .replace(containerId, HomepageFragment()) // Usa l'ID corretto!
+                                            .commitAllowingStateLoss()
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("Navigation", "Fragment transaction failed: ${e.message}")
+                                }
+                            }
                         }
                     )
                 }
@@ -282,51 +293,63 @@ fun CameraScreen(
         isProcessingEnabled = false
         val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         val userId = sharedPreferences.getString("id", "0")!!.toInt()
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         val current = LocalDateTime.now().format(formatter).toString()
 
         coroutineScope.launch {
             isLoading = true
-            // effettua richiesta al backend inviando l'id del luogo e l'id dell'utente
+            // effettua richiesta al backend inviando id del luogo e id dell'utente
             try {
-                val visitPlaceRequest = VisitPlaceRequest(lastRawValue.toInt(), userId, current)
+                val visitPlaceRequest = VisitPlaceRequest(lastRawValue.toInt(), userId, current, latitude.toDouble(), longitude.toDouble())
                 val response = RetrofitInstance.apiService.visitPlaceById(visitPlaceRequest)
 
-                if (response.isSuccessful && response.body() != null) {
-                    // leggero feedback aptico alla ricezione di una risposta positiva
-                    if (vibrator.hasVibrator()) {
-                        vibrator.vibrate(VibrationEffect.createOneShot(25, VibrationEffect.DEFAULT_AMPLITUDE))
-                    }
-
-                    val info = response.body()!!
-
-                    when (response.code()) {
-                        // 201 per indicare l'inserimento della visita, non ancora avvenuta finora; verrà chiesto se si vuole scattare
-                        // una foto ricordo per immortalare il momento
-                        201 -> {
-                            Toast.makeText(context, "Congratulation! You visited this place!", Toast.LENGTH_SHORT).show()
-                            showSouvenirButton = true
+                if (response.body() != null) {
+                    if (response.isSuccessful){
+                        // leggero feedback aptico alla ricezione di una risposta positiva
+                        if (vibrator.hasVibrator()) {
+                            vibrator.vibrate(VibrationEffect.createOneShot(25, VibrationEffect.DEFAULT_AMPLITUDE))
                         }
 
-                        // 200 per confermare che il luogo è stato già visitato, nessun inserimento e viene
-                        // ricevuta l'immagine ricordo precedentemente scattata
-                        200 -> {
-                            Toast.makeText(context, "You already saw this place!", Toast.LENGTH_SHORT).show()
-                            placeImage = base64ToBitmap(info.image)
+                        val info = response.body()!!
+
+                        when (response.code()) {
+                            // 200 per confermare che il luogo è stato già visitato, nessun inserimento e viene
+                            // ricevuta l'immagine ricordo precedentemente scattata
+                            200 -> {
+                                Toast.makeText(context, "You already saw this place!", Toast.LENGTH_SHORT).show()
+                                placeImage = base64ToBitmap(info.image)
+                            }
+
+                            // 201 per indicare l'inserimento della visita, non ancora avvenuta finora; verrà chiesto se si vuole scattare
+                            // una foto ricordo per immortalare il momento
+                            201 -> {
+                                Toast.makeText(context, "Congratulation! You visited this place!", Toast.LENGTH_SHORT).show()
+                                showSouvenirButton = true
+                            }
+                        }
+
+                        placeName = info.name ?: ""
+                        placeInfo = info.information ?: ""
+                        if(info.image == null){
+                            placeImage = BitmapFactory.decodeResource(context.getResources(),
+                                R.drawable.null_place_image);
+                        }
+
+                        placeImage = base64ToBitmap(info.image)
+                        showPlaceDetails = true
+                        // showCamera = false
+
+                    } else {
+                        when(response.code()){
+                            400 -> Toast.makeText(context, "Incorrect request", Toast.LENGTH_SHORT).show()
+                            404 -> Toast.makeText(context, "Not found", Toast.LENGTH_SHORT).show()
+                            406 -> {
+                                placeName = "Too far from the place, check your position!"
+                                placeImage = BitmapFactory.decodeResource(context.getResources(),
+                                    R.drawable.null_place_image);
+                            }
                         }
                     }
-
-                    placeName = info.name ?: ""
-                    placeInfo = info.information ?: ""
-                    if(info.image == null){
-                        placeImage = BitmapFactory.decodeResource(context.getResources(),
-                            R.drawable.null_place_image);
-                    }
-
-                    placeImage = base64ToBitmap(info.image)
-                    showPlaceDetails = true
-                    // showCamera = false
-
                 } else {
                     Toast.makeText(context, "Bad request", Toast.LENGTH_SHORT).show()
                 }
