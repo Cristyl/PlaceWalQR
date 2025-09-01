@@ -635,7 +635,8 @@ fun CameraScreen(
         Card (
             modifier = Modifier
                 .fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+            // colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             // nome luogo
             Text(

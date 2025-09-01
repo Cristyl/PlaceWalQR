@@ -18,6 +18,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
 import android.view.View
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.view.WindowCompat
 import com.example.placewalqr.ui.theme.PlaceWalQRTheme
 
 class BaseActivity : AppCompatActivity() {
@@ -31,6 +33,11 @@ class BaseActivity : AppCompatActivity() {
         // Usa setContent per UI Compose
         setContent {
             PlaceWalQRTheme {
+                val statusBarColor = MaterialTheme.colorScheme.primary
+                SideEffect {
+                    window.statusBarColor = statusBarColor.toArgb()
+                    WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = false
+                }
                 MainScreen()
             }
         }

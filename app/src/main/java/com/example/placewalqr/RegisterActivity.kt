@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -18,6 +19,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +28,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
 import com.example.placewalqr.ui.theme.PlaceWalQRTheme
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -415,6 +418,11 @@ class RegisterActivity : ComponentActivity() {
 
         setContent {
             PlaceWalQRTheme{
+                val statusBarColor = MaterialTheme.colorScheme.primary
+                SideEffect {
+                    window.statusBarColor = statusBarColor.toArgb()
+                    WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = false
+                }
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
