@@ -37,6 +37,11 @@ import kotlinx.coroutines.withContext
 
 class CollectionFragment : Fragment() {
 
+    // Variabile statica per ricordare l'ultimo tab selezionato
+    companion object {
+        private var lastSelectedTab: Int = 0
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -53,23 +58,21 @@ class CollectionFragment : Fragment() {
 
     @Composable
     fun CollectionScreen() {
-        var selectedTab by remember { mutableIntStateOf(0) } // 0=Places, 1=Collections
+        // Usa l'ultimo tab selezionato invece di default 0
+        var selectedTab by remember { mutableIntStateOf(lastSelectedTab) }
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.placewalqr_logo),
-                modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally).padding(bottom = 32.dp),
-                contentDescription = "App Logo"
-            )
-
             // Tab Switcher personalizzato
             TabSwitcher(
                 selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it }
+                onTabSelected = {
+                    selectedTab = it
+                    lastSelectedTab = it // Salva l'ultimo tab selezionato
+                }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -351,11 +354,19 @@ class CollectionFragment : Fragment() {
         collection: Collection,
         onClick: () -> Unit
     ) {
+        // Determina il colore di sfondo basato sul completamento
+        val backgroundColor = if (collection.isCompleted) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surface
+        }
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onClick() },
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            colors = CardDefaults.cardColors(containerColor = backgroundColor)
         ) {
             Row(
                 modifier = Modifier
