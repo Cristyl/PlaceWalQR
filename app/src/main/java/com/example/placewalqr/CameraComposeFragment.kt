@@ -22,6 +22,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -38,13 +39,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import com.example.placewalqr.ui.theme.PlaceWalQRTheme
 import com.google.android.gms.location.*
@@ -62,7 +61,6 @@ import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.math.round
-import kotlin.text.replace
 
 class CameraComposeFragment : Fragment() {
 
@@ -436,8 +434,10 @@ fun CameraScreen(
 //            textAlign = TextAlign.Center,
 //            style = MaterialTheme.typography.headlineMedium
 //        )
-        Image(
-            painter = painterResource(id = R.drawable.placewalqr_logo),
+        Image(painter = painterResource(
+            id = if (isSystemInDarkTheme()) R.drawable.placewalqr_logo_dark_lol
+            else R.drawable.placewalqr_logo
+            ),
             modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally),
             contentDescription = "App Logo"
         )

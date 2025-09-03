@@ -8,11 +8,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -61,7 +61,10 @@ class CollectionFragment : Fragment() {
                 .padding(16.dp)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.placewalqr_logo),
+                painter = painterResource(
+                    id = if (isSystemInDarkTheme()) R.drawable.placewalqr_logo_dark_lol
+                    else R.drawable.placewalqr_logo
+                ),
                 modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally).padding(bottom = 32.dp),
                 contentDescription = "App Logo"
             )

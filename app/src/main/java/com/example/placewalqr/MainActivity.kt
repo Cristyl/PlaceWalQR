@@ -7,7 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -26,7 +26,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 
 import androidx.compose.ui.unit.dp
@@ -131,7 +130,10 @@ fun LoginScreen(
     ) {
         // titolo app
         Image(
-            painter = painterResource(id = R.drawable.placewalqr_logo),
+            painter = painterResource(
+                id = if (isSystemInDarkTheme()) R.drawable.placewalqr_logo_dark_lol
+                     else R.drawable.placewalqr_logo
+            ),
             modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally),
             contentDescription = "App Logo"
         )
@@ -292,7 +294,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            PlaceWalQRTheme(darkTheme = false) {
+            PlaceWalQRTheme() {
                 val statusBarColor = MaterialTheme.colorScheme.primary
                 SideEffect {
                     window.statusBarColor = statusBarColor.toArgb()

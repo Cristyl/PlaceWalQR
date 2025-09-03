@@ -21,6 +21,7 @@ import retrofit2.HttpException
 import java.io.IOException
 import android.os.Bundle
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 
@@ -102,9 +103,12 @@ class LeaderboardFragment : Fragment() {
                 .padding(16.dp)
         ) {
             Image(
-            painter = painterResource(id = R.drawable.placewalqr_logo),
-            modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally).padding(bottom = 32.dp),
-            contentDescription = "App Logo"
+                painter = painterResource(
+                    id = if (isSystemInDarkTheme()) R.drawable.placewalqr_logo_dark_lol
+                    else R.drawable.placewalqr_logo
+                ),
+                modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally).padding(bottom = 32.dp),
+                contentDescription = "App Logo"
             )
 
             Text(
