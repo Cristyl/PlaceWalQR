@@ -16,6 +16,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +28,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -63,6 +66,9 @@ fun RegisterScreen(
     var emailError by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf("") }
     var confirmPasswordError by remember { mutableStateOf("") }
+
+    var showPassword by remember { mutableStateOf(false) }
+    var showConfirmPassword by remember { mutableStateOf(false) }
 
     // selezionatore data di nascita
     fun showDatePicker() {
@@ -335,7 +341,13 @@ fun RegisterScreen(
                 if (passwordError.isNotEmpty()) passwordError = ""
             },
             label = { Text("Password *") },
-            visualTransformation = PasswordVisualTransformation(),
+            visualTransformation =
+                if(showPassword){
+                    VisualTransformation.None
+                }
+                else {
+                    PasswordVisualTransformation()
+                },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth(),
             enabled = !isLoading,
@@ -343,7 +355,25 @@ fun RegisterScreen(
             isError = passwordError.isNotEmpty(),
             supportingText = if (passwordError.isNotEmpty()) {
                 { Text(passwordError, color = MaterialTheme.colorScheme.error) }
-            } else null
+            } else null,
+            trailingIcon = {
+                if (showPassword) {
+                    IconButton(onClick = { showPassword = false }) {
+                        Icon(
+                            imageVector = Icons.Filled.Visibility,
+                            contentDescription = "hide_password"
+                        )
+                    }
+                } else {
+                    IconButton(
+                        onClick = { showPassword = true }) {
+                        Icon(
+                            imageVector = Icons.Filled.VisibilityOff,
+                            contentDescription = "hide_password"
+                        )
+                    }
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -356,7 +386,13 @@ fun RegisterScreen(
                 if (confirmPasswordError.isNotEmpty()) confirmPasswordError = ""
             },
             label = { Text("Confirm Password *") },
-            visualTransformation = PasswordVisualTransformation(),
+            visualTransformation =
+                if(showConfirmPassword){
+                    VisualTransformation.None
+                }
+                else {
+                    PasswordVisualTransformation()
+                },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth(),
             enabled = !isLoading,
@@ -364,7 +400,25 @@ fun RegisterScreen(
             isError = confirmPasswordError.isNotEmpty(),
             supportingText = if (confirmPasswordError.isNotEmpty()) {
                 { Text(confirmPasswordError, color = MaterialTheme.colorScheme.error) }
-            } else null
+            } else null,
+            trailingIcon = {
+                if (showConfirmPassword) {
+                    IconButton(onClick = { showConfirmPassword = false }) {
+                        Icon(
+                            imageVector = Icons.Filled.Visibility,
+                            contentDescription = "hide_password"
+                        )
+                    }
+                } else {
+                    IconButton(
+                        onClick = { showConfirmPassword = true }) {
+                        Icon(
+                            imageVector = Icons.Filled.VisibilityOff,
+                            contentDescription = "hide_password"
+                        )
+                    }
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(32.dp))

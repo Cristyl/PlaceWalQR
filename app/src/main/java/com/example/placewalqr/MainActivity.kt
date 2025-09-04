@@ -296,7 +296,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            PlaceWalQRTheme(darkTheme = false) {
+            PlaceWalQRTheme() {
                 val statusBarColor = MaterialTheme.colorScheme.primary
                 SideEffect {
                     window.statusBarColor = statusBarColor.toArgb()
