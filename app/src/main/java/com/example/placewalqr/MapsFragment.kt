@@ -77,6 +77,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.isSystemInDarkTheme
 
 class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
 
@@ -147,7 +148,10 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.placewalqr_logo),
+                        painter = painterResource(
+                            id = if (isSystemInDarkTheme()) R.drawable.placewalqr_logo_dark_lol
+                            else R.drawable.placewalqr_logo
+                        ),
                         modifier = Modifier.width(250.dp),
                         contentDescription = "App Logo"
                     )

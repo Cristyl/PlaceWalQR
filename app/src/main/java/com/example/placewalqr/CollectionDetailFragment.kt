@@ -133,6 +133,8 @@ class CollectionDetailFragment : Fragment() {
                 }
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Contenuto principale
             when {
                 isLoading -> {
@@ -173,10 +175,10 @@ class CollectionDetailFragment : Fragment() {
 
                 places.isNotEmpty() -> {
                     LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                            .padding(horizontal = 16.dp)
                     ) {
                         items(places) { place ->
                             CollectionPlaceCard(place)
@@ -270,6 +272,7 @@ class CollectionDetailFragment : Fragment() {
                 }
             }
         }
+
     }
 
     @Composable

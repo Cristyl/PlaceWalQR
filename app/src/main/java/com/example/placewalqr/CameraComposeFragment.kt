@@ -22,6 +22,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -436,8 +437,10 @@ fun CameraScreen(
 //            textAlign = TextAlign.Center,
 //            style = MaterialTheme.typography.headlineMedium
 //        )
-        Image(
-            painter = painterResource(id = R.drawable.placewalqr_logo),
+        Image(painter = painterResource(
+            id = if (isSystemInDarkTheme()) R.drawable.placewalqr_logo_dark_lol
+            else R.drawable.placewalqr_logo
+        ),
             modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally),
             contentDescription = "App Logo"
         )

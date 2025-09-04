@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.foundation.isSystemInDarkTheme
 
 class CollectionFragment : Fragment() {
 
@@ -66,6 +67,15 @@ class CollectionFragment : Fragment() {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
+            Image(
+                painter = painterResource(
+                    id = if (isSystemInDarkTheme()) R.drawable.placewalqr_logo_dark_lol
+                    else R.drawable.placewalqr_logo
+                ),
+                modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally).padding(bottom = 32.dp),
+                contentDescription = "App Logo"
+            )
+
             // Tab Switcher personalizzato
             TabSwitcher(
                 selectedTab = selectedTab,

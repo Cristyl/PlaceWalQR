@@ -12,6 +12,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -157,7 +158,10 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(id = R.drawable.placewalqr_logo),
+                painter = painterResource(
+                    id = if (isSystemInDarkTheme()) R.drawable.placewalqr_logo_dark_lol
+                    else R.drawable.placewalqr_logo
+                ),
                 modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally).padding(bottom = 32.dp),
                 contentDescription = "App Logo"
             )

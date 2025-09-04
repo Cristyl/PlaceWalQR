@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -131,7 +132,10 @@ fun LoginScreen(
     ) {
         // titolo app
         Image(
-            painter = painterResource(id = R.drawable.placewalqr_logo),
+            painter = painterResource(
+                id = if (isSystemInDarkTheme()) R.drawable.placewalqr_logo_dark_lol
+                else R.drawable.placewalqr_logo
+            ),
             modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally),
             contentDescription = "App Logo"
         )

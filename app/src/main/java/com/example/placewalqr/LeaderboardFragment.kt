@@ -23,6 +23,7 @@ import android.os.Bundle
 import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.isSystemInDarkTheme
 
 class LeaderboardFragment : Fragment() {
 
@@ -102,10 +103,14 @@ class LeaderboardFragment : Fragment() {
                 .padding(16.dp)
         ) {
             Image(
-            painter = painterResource(id = R.drawable.placewalqr_logo),
-            modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally).padding(bottom = 32.dp),
-            contentDescription = "App Logo"
+                painter = painterResource(
+                    id = if (isSystemInDarkTheme()) R.drawable.placewalqr_logo_dark_lol
+                    else R.drawable.placewalqr_logo
+                ),
+                modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally).padding(bottom = 32.dp),
+                contentDescription = "App Logo"
             )
+
 
             Text(
                 text = "Leaderboard",
