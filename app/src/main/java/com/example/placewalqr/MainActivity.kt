@@ -1,23 +1,51 @@
 package com.example.placewalqr
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import RetrofitInstance
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
@@ -27,13 +55,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.example.placewalqr.ui.theme.PlaceWalQRTheme
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -46,6 +74,38 @@ fun LoginScreen(
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+
+    // Effettua il logout da Google se l'utente torna a questa schermata dopo un login Google
+    LaunchedEffect(Unit) {
+        GoogleSignIn.getClient(context, GoogleSignInOptions.DEFAULT_SIGN_IN).signOut()
+    }
+
+    // definizione client per effettuare accesso tramite login con google
+    val googleSignInClient = remember {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestProfile()
+            .requestId()
+            .build()
+        GoogleSignIn.getClient(context, gso)
+    }
+
+    // gestisce interazione con interfaccia per accedere con account google
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            // Processa il login Google
+            coroutineScope.launch {
+                handleGoogleSignIn(account, context, onNavigateToBase)
+            }
+        } catch (e: ApiException) {
+            Log.e("GoogleSignIn", "Login failed: ${e.statusCode}")
+            Toast.makeText(context, "Google login failed", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     // stati delle variabili
     var email by remember { mutableStateOf("") }
@@ -242,19 +302,51 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // link per password dimenticata, da rivedere
-        TextButton(
+        // AGGIUNGI: Divisore "OR"
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            androidx.compose.material3.HorizontalDivider(modifier = Modifier.weight(1f))
+            Text(
+                text = "OR",
+                modifier = Modifier.padding(horizontal = 16.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            androidx.compose.material3.HorizontalDivider(modifier = Modifier.weight(1f))
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // AGGIUNGI: Bottone Google Sign-In
+        androidx.compose.material3.OutlinedButton(
             onClick = {
-                // TODO: Implement forgot password
-                Toast.makeText(context, "Forgot password feature coming soon", Toast.LENGTH_SHORT).show()
+                val signInIntent = googleSignInClient.signInIntent
+                googleSignInLauncher.launch(signInIntent)
             },
+            modifier = Modifier.fillMaxWidth(),
             enabled = !isLoading
         ) {
             Text(
-                text = "Forgot password?",
-                textDecoration = TextDecoration.Underline
+                text = "Continue with Google",
+                fontSize = 16.sp
             )
         }
+
+        // link per password dimenticata, da rivedere
+//        TextButton(
+//            onClick = {
+//                // TODO: Implement forgot password
+//                Toast.makeText(context, "Forgot password feature coming soon", Toast.LENGTH_SHORT).show()
+//            },
+//            enabled = !isLoading
+//        ) {
+//            Text(
+//                text = "Forgot password?",
+//                textDecoration = TextDecoration.Underline
+//            )
+//        }
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -286,6 +378,53 @@ fun LoginScreen(
                 color = MaterialTheme.colorScheme.primary
             )
         }
+    }
+}
+
+// funzione asincrona per gestione accesso con google
+suspend fun handleGoogleSignIn(account: com.google.android.gms.auth.api.signin.GoogleSignInAccount, context: Context, onNavigateToBase: () -> Unit) {
+    try {
+        val userData = GoogleUserData(
+            google_id = account.id ?: "",
+            email = account.email ?: "",
+            name = account.givenName ?: "",
+            surname = account.familyName ?: "",
+            dob = null.toString(),
+            nickname = account.givenName + account.familyName
+        )
+
+        val response = RetrofitInstance.apiService.googleAuth(userData)
+
+        if (response.isSuccessful) {
+            val userInfo = response.body()!!
+
+            // salva i dati dell'utente
+            val editor = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE).edit()
+            editor.putString("id", userInfo.id.toString())
+            editor.putString("name", userData.name)
+            editor.putString("surname", userData.surname)
+            editor.putString("email", userData.email)
+            editor.putString("nickname", userData.nickname)
+            editor.putString("google_auth", "false")
+            editor.putBoolean("remember_me", false)
+            editor.apply()
+
+            when(response.code()!!) {
+                200 ->
+                    Toast.makeText(context, "Successful login!", Toast.LENGTH_SHORT).show()
+
+                201 ->
+                    Toast.makeText(context, "Successful registration!", Toast.LENGTH_SHORT).show()
+            }
+
+            // ritorna a schermata antecedente al launcher
+            onNavigateToBase()
+        } else {
+            Toast.makeText(context, "Google auth failed", Toast.LENGTH_SHORT).show()
+        }
+    } catch (e: Exception) {
+        Log.e("GoogleAuth", "Error: ${e.message}")
+        Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show()
     }
 }
 

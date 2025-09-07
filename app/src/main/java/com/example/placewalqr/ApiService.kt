@@ -25,6 +25,10 @@ interface ApiService {
     @POST("api/register")
     suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
 
+    // endpoint per signin con google
+    @POST("api/googleAuth")
+    suspend fun googleAuth(@Body userData: GoogleUserData): Response<GoogleAuthResponse>
+
     // endpoint per visitare luogo
     @POST("api/visitPlaceById")
     //suspend fun visitPlaceById(@Query("place_id") place_id: Int, @Query("user_email") user_email: String, @Query("date_of_visit") date_of_visit: String): Response<VisitPlaceResponse>

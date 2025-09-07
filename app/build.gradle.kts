@@ -96,11 +96,16 @@ dependencies {
     // API calls
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // google auth
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+
 }
 
 
 buildscript {
     dependencies {
+        classpath("com.google.gms:google-services:4.4.3")
         classpath("com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin:2.0.1")
     }
 }
