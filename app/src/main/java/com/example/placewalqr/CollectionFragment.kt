@@ -1,6 +1,7 @@
 package com.example.placewalqr
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Base64
@@ -8,11 +9,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -34,11 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import androidx.compose.foundation.isSystemInDarkTheme
 
 class CollectionFragment : Fragment() {
 
-    // Variabile statica per ricordare l'ultimo tab selezionato
     companion object {
         private var lastSelectedTab: Int = 0
     }
@@ -59,7 +58,6 @@ class CollectionFragment : Fragment() {
 
     @Composable
     fun CollectionScreen() {
-        // Usa l'ultimo tab selezionato invece di default 0
         var selectedTab by remember { mutableIntStateOf(lastSelectedTab) }
 
         Column(
@@ -72,25 +70,26 @@ class CollectionFragment : Fragment() {
                     id = if (isSystemInDarkTheme()) R.drawable.placewalqr_logo_dark_lol
                     else R.drawable.placewalqr_logo
                 ),
-                modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally).padding(bottom = 32.dp),
+                modifier = Modifier
+                    .width(250.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = 32.dp),
                 contentDescription = "App Logo"
             )
 
-            // Tab Switcher personalizzato
             TabSwitcher(
                 selectedTab = selectedTab,
                 onTabSelected = {
                     selectedTab = it
-                    lastSelectedTab = it // Salva l'ultimo tab selezionato
+                    lastSelectedTab = it
                 }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Contenuto basato sul tab selezionato
             when (selectedTab) {
-                0 -> PlacesContent() // Il contenuto esistente di AchievementsFragment
-                1 -> CollectionsContent() // Nuovo contenuto per le collezioni
+                0 -> PlacesContent()
+                1 -> CollectionsContent()
             }
         }
     }
@@ -157,7 +156,6 @@ class CollectionFragment : Fragment() {
 
     @Composable
     private fun PlacesContent() {
-        // Contenuto esistente di AchievementsFragment (i luoghi visitati)
         var isLoading by remember { mutableStateOf(true) }
         var places by remember { mutableStateOf<List<Place>>(emptyList()) }
         var nickname by remember { mutableStateOf("") }
@@ -188,11 +186,7 @@ class CollectionFragment : Fragment() {
                         errorMessage = "No places visited yet"
                     }
                 } else {
-                    errorMessage = when (response.code()) {
-                        400 -> "User ID parameter is missing"
-                        500 -> "Server error, please try again later"
-                        else -> "Unknown error occurred"
-                    }
+                    errorMessage = "Error loading places"
                 }
             } catch (e: Exception) {
                 errorMessage = "Connection error, please check your internet"
@@ -202,28 +196,8 @@ class CollectionFragment : Fragment() {
         }
 
         when {
-            isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-
-            errorMessage != null -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = errorMessage!!,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-
+            isLoading -> LoadingScreen()
+            errorMessage != null -> ErrorScreen(errorMessage!!)
             places.isNotEmpty() -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -277,28 +251,8 @@ class CollectionFragment : Fragment() {
         }
 
         when {
-            isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-
-            errorMessage != null -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = errorMessage!!,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-
+            isLoading -> LoadingScreen()
+            errorMessage != null -> ErrorScreen(errorMessage!!)
             collections.isNotEmpty() -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -307,10 +261,7 @@ class CollectionFragment : Fragment() {
                     items(collections) { collection ->
                         CollectionCard(
                             collection = collection,
-                            onClick = {
-                                // Apri dettaglio collezione
-                                openCollectionDetail(collection.id)
-                            }
+                            onClick = { openCollectionDetail(collection.id) }
                         )
                     }
                 }
@@ -320,6 +271,21 @@ class CollectionFragment : Fragment() {
 
     @Composable
     private fun PlaceCard(place: Place) {
+        var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+        LaunchedEffect(place.imageBase64) {
+            bitmap = withContext(Dispatchers.IO) {
+                try {
+                    place.imageBase64?.let {
+                        val bytes = Base64.decode(it, Base64.DEFAULT)
+                        BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                    }
+                } catch (e: Exception) {
+                    null
+                }
+            }
+        }
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -333,26 +299,28 @@ class CollectionFragment : Fragment() {
                     style = MaterialTheme.typography.titleMedium
                 )
 
-                place.imageBase64?.let { base64Image ->
-                    val bitmap = remember(base64Image) {
-                        try {
-                            val bytes = Base64.decode(base64Image, Base64.DEFAULT)
-                            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                        } catch (e: Exception) {
-                            null
-                        }
-                    }
-                    bitmap?.let {
-                        Image(
-                            bitmap = it.asImageBitmap(),
-                            contentDescription = "Place image",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(180.dp)
-                                .padding(top = 8.dp)
-                                .clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop
-                        )
+                if (bitmap != null) {
+                    Image(
+                        bitmap = bitmap!!.asImageBitmap(),
+                        contentDescription = "Place image",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .padding(top = 8.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .padding(top = 8.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.Gray),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
                 }
             }
@@ -364,7 +332,21 @@ class CollectionFragment : Fragment() {
         collection: Collection,
         onClick: () -> Unit
     ) {
-        // Determina il colore di sfondo basato sul completamento
+        var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+        LaunchedEffect(collection.displayImage) {
+            bitmap = withContext(Dispatchers.IO) {
+                try {
+                    collection.displayImage?.let {
+                        val bytes = Base64.decode(it, Base64.DEFAULT)
+                        BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                    }
+                } catch (e: Exception) {
+                    null
+                }
+            }
+        }
+
         val backgroundColor = if (collection.isCompleted) {
             MaterialTheme.colorScheme.primaryContainer
         } else {
@@ -384,7 +366,6 @@ class CollectionFragment : Fragment() {
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Immagine della collezione
                 Box(
                     modifier = Modifier
                         .size(64.dp)
@@ -392,45 +373,31 @@ class CollectionFragment : Fragment() {
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (collection.displayImage != null) {
-                        val bitmap = remember(collection.displayImage) {
-                            try {
-                                val bytes = Base64.decode(collection.displayImage, Base64.DEFAULT)
-                                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                            } catch (e: Exception) {
-                                null
-                            }
-                        }
-                        bitmap?.let {
-                            Image(
-                                bitmap = it.asImageBitmap(),
-                                contentDescription = "Collection image",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } ?: DefaultCollectionImage()
+                    if (bitmap != null) {
+                        Image(
+                            bitmap = bitmap!!.asImageBitmap(),
+                            contentDescription = "Collection image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
                     } else {
-                        DefaultCollectionImage()
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
                     }
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // Info collezione
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = collection.displayName,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
-
                     Text(
                         text = collection.progressText,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-
-                    // Progress bar
                     LinearProgressIndicator(
                         progress = { collection.visitedPlaces.toFloat() / collection.totalPlaces.toFloat() },
                         modifier = Modifier
@@ -443,7 +410,6 @@ class CollectionFragment : Fragment() {
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // Punti
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = "${collection.points}",
@@ -471,12 +437,33 @@ class CollectionFragment : Fragment() {
         )
     }
 
+    @Composable
+    private fun LoadingScreen() {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    }
+
+    @Composable
+    private fun ErrorScreen(message: String) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+
     private fun openCollectionDetail(collectionId: Int) {
-        // Usa la stessa logica di navigazione della BaseActivity
         val detailFragment = CollectionDetailFragment.newInstance(collectionId)
         val activity = requireActivity() as BaseActivity
-
-        // Chiama direttamente il metodo di navigazione della BaseActivity
         activity.navigateToDetailFragment(detailFragment)
     }
 }
