@@ -39,13 +39,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import com.example.placewalqr.ui.theme.PlaceWalQRTheme
 import com.google.android.gms.location.*
@@ -63,7 +61,6 @@ import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.math.round
-import kotlin.text.replace
 
 class CameraComposeFragment : Fragment() {
 
@@ -109,7 +106,7 @@ fun CameraScreen(
     val coroutineScope = rememberCoroutineScope()
     val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
-    // stati per variabili
+    // variables for states
     var placeDetected by remember { mutableStateOf("Scanning for a valid QR code...") }
     var placeInfo by remember { mutableStateOf("") }
     var placeName by remember { mutableStateOf("") }
@@ -122,27 +119,27 @@ fun CameraScreen(
     var souvenirMode by remember { mutableStateOf(false) }
     var capturedSouvenirBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
-    // variabili per camera e posizione
+    // side variables for qr codes processing and position
     var lastRawValue by remember { mutableStateOf("") }
     var isProcessingEnabled by remember { mutableStateOf(true) }
     var latitude by remember { mutableStateOf(0.0) }
     var longitude by remember { mutableStateOf(0.0) }
 
-    // variabili per la camera
+    // variables for camera
     var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
     var camera by remember { mutableStateOf<Camera?>(null) }
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     val cameraExecutor by remember { mutableStateOf(Executors.newSingleThreadExecutor()) }
 
-    // variabili specifiche per posizione
+    // specific variables for position
     var fusedLocationClient by remember { mutableStateOf<FusedLocationProviderClient?>(null) }
     var locationCallback by remember { mutableStateOf<LocationCallback?>(null) }
 
-    // permessi
+    // permissions
     val requiredPermissions = arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.VIBRATE)
     var permissionsGranted by remember { mutableStateOf(false) }
 
-    // lancia i permessi e permette di ottenere popup per chiedere autorizzazioni
+    // throw permissions, through popup asks for permission
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions: Map<String, Boolean> ->
@@ -152,7 +149,7 @@ fun CameraScreen(
         }
     }
 
-    // lancia eventuale popup per i permessi
+    // able to open permissions popup
     LaunchedEffect(Unit) {
         permissionsGranted = requiredPermissions.all {
             ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
@@ -162,7 +159,7 @@ fun CameraScreen(
         }
     }
 
-    // inizializza la localizzazione se ottenuti i permessi
+    // initialize location scan if permissions are granted
     LaunchedEffect(permissionsGranted) {
         if (permissionsGranted) {
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
@@ -195,7 +192,7 @@ fun CameraScreen(
         }
     }
 
-    // pulizia di tutto una volta che viene richiesta l'uscita dalla scehermata
+    // cleanup after screen exiting
     DisposableEffect(Unit) {
         onDispose {
             isProcessingEnabled = false
@@ -207,7 +204,9 @@ fun CameraScreen(
         }
     }
 
-    // trasforma un immagine ImageProxy in Bitmap per future lavorazioni
+    // transform imageProxy into bitmap:
+    // extracts image as array of bytes then decodes it as bitmap,
+    // finally rotates it if needed
     fun imageProxyToBitmap(image: ImageProxy): Bitmap {
         val buffer = image.planes[0].buffer
         val bytes = ByteArray(buffer.remaining())
@@ -224,15 +223,16 @@ fun CameraScreen(
         }
     }
 
-    // trasforma il bitmap in una stringa Base64 per inviarla al server
+    // converts bitmap into base64 string for sending it to server
     fun bitmapToBase64(bitmap: Bitmap): String {
         val byteArrayOutputStream = ByteArrayOutputStream()
+        // bitmap compression
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
         val byteArray = byteArrayOutputStream.toByteArray()
         return Base64.getEncoder().encodeToString(byteArray)
     }
 
-    // trasforma la stringa Base64 per renderla Bitmap e "comprensibile"
+    // converts base64 string into bitmap
     fun base64ToBitmap(base64String: String?): Bitmap? {
         return try {
             val decodedBytes = Base64.getDecoder().decode(base64String) // The error likely happens here
@@ -244,7 +244,9 @@ fun CameraScreen(
     }
 
 
-    // processa l'ImageProxy
+    // imageProxy processing:
+    // if no processing is executed, set to qr code the barcode scan
+    // then executes the processing
     fun processImage(imageProxy: ImageProxy) {
         if (!isProcessingEnabled) {
             imageProxy.close()
@@ -257,11 +259,9 @@ fun CameraScreen(
 
         val mediaImage = imageProxy.image
 
-        // se input contiene effettivamente un'immagine,
-        // procede a usare BarcodeScanning per cercare un QR code valido;
-        // se l'ha trovato, estrae la stringa contenuta in esso e assegna
-        // tale valore a lastRawValue.
-        // NB: lastRawValue contiene l'ULTIMO valore processato, NON il primo!!!
+        // if input actually contains an image,
+        // uses BarcodeScanning for recognizing a qr code,
+        // then extract the value contained in it and set lastRawValue as it
         if (mediaImage != null) {
             val img = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
             val scanner = BarcodeScanning.getClient(options)
@@ -289,7 +289,7 @@ fun CameraScreen(
         }
     }
 
-    // funzione per comunicare al server di voler visitare tale luogo
+    // tells to server that user wants to visit the place
     fun visitPlaceById() {
         isProcessingEnabled = false
         val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
@@ -299,14 +299,15 @@ fun CameraScreen(
 
         coroutineScope.launch {
             isLoading = true
-            // effettua richiesta al backend inviando id del luogo e id dell'utente
             try {
+                // tries to send a request to the server for telling the visit,
+                // it specifies id of place, userId, date, position
                 val visitPlaceRequest = VisitPlaceRequest(lastRawValue.toInt(), userId, current, latitude.toDouble(), longitude.toDouble())
                 val response = RetrofitInstance.apiService.visitPlaceById(visitPlaceRequest)
 
                 if (response.body() != null) {
                     if (response.isSuccessful){
-                        // leggero feedback aptico alla ricezione di una risposta positiva
+                        // aptic feedback if success
                         if (vibrator.hasVibrator()) {
                             vibrator.vibrate(VibrationEffect.createOneShot(25, VibrationEffect.DEFAULT_AMPLITUDE))
                         }
@@ -314,15 +315,14 @@ fun CameraScreen(
                         val info = response.body()!!
 
                         when (response.code()) {
-                            // 200 per confermare che il luogo è stato già visitato, nessun inserimento e viene
-                            // ricevuta l'immagine ricordo precedentemente scattata
+                            // 200 as confirmation code of place has been already seen in the past;
+                            // if possible, the souvenir photo is showed in the screen
                             200 -> {
                                 Toast.makeText(context, "You already saw this place!", Toast.LENGTH_SHORT).show()
                                 placeImage = base64ToBitmap(info.image)
                             }
 
-                            // 201 per indicare l'inserimento della visita, non ancora avvenuta finora; verrà chiesto se si vuole scattare
-                            // una foto ricordo per immortalare il momento
+                            // 201 as new place visited, it will ask for taking a souvenir photo
                             201 -> {
                                 Toast.makeText(context, "Congratulation! You visited this place!", Toast.LENGTH_SHORT).show()
                                 showSouvenirButton = true
@@ -364,13 +364,12 @@ fun CameraScreen(
         }
     }
 
-    // funzione per scattare la foto
     fun takePhoto() {
         imageCapture?.takePicture(
             ContextCompat.getMainExecutor(context),
 
-            // oggetto per la cattura dell'immagine, fa override di cattura
-            // con successo per gestire l'immagine
+            // such object is used to capture the image, overrides the capture
+            // with success for managing the image
             object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
                     // immagine ottenuta viene convertita in Bitmap
@@ -386,7 +385,6 @@ fun CameraScreen(
         )
     }
 
-    // funzione per invio dell'immagine ricordo al server
     fun sendTakenSouvenir(bitmap: Bitmap) {
         val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         val userId = sharedPreferences.getString("id", "")
@@ -401,7 +399,7 @@ fun CameraScreen(
             try {
                 val imageString = bitmapToBase64(bitmap)
 
-                // dopo aver trasformato immagine in Base64, procede all'invio della richiesta al backend
+                // after transforming the image in Base64, proceeds to send the request to the server
                 val souvenirRequest = SouvenirRequest(lastRawValue.toInt(), userId!!.toInt(), imageString)
                 val response = RetrofitInstance.apiService.saveSouvenir(souvenirRequest)
 
@@ -429,14 +427,7 @@ fun CameraScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // titolo app
-//        Text(
-//            text = "PlaceWalQR",
-//            fontSize = 24.sp,
-//            modifier = Modifier.fillMaxWidth(),
-//            textAlign = TextAlign.Center,
-//            style = MaterialTheme.typography.headlineMedium
-//        )
+        // image as logo
         Image(painter = painterResource(
             id = if (isSystemInDarkTheme()) R.drawable.placewalqr_logo_dark_lol
             else R.drawable.placewalqr_logo
@@ -447,8 +438,8 @@ fun CameraScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // box usato per mostrare cosa vede la fotocamera
-        // oppure per visualizzare la foto ritornata dal backend
+        // box for showing what the camera sees or
+        // for showing the image coming from the backend
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -457,7 +448,7 @@ fun CameraScreen(
                 .clip(RoundedCornerShape(8.dp))
         ) {
 
-            // immagine presente nella risposta HTTP(S)
+            // image inside the request is being extracted
             placeImage?.let { bitmap ->
                 Image(
                     bitmap = bitmap.asImageBitmap(),
@@ -469,16 +460,18 @@ fun CameraScreen(
                 )
             }
 
-            // se deve mostrare la camera, ha i permessi giusti ma NON
-            // deve mostrare i dettagli del posto allora deve
-            // o trovare un QR code valido o scattare la foto ricordo
+            // if it has to show the camera, it has permissions but
+            // it must not show details of place then find a qr code or
+            // take a souvenir photo
             if (showCamera && permissionsGranted && !showPlaceDetails) {
                 AndroidView(
                     factory = { ctx ->
+                        // it sets the preview in a mode that is compatible with the sensor
                         PreviewView(ctx).apply {
                             implementationMode = PreviewView.ImplementationMode.COMPATIBLE
 
-                            // inizializzazione e setup della camera
+                            // obtains an instance of the cameraprovider in order to handle
+                            // the camera and its lifecycle
                             val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
                             cameraProviderFuture.addListener({
                                 try {
@@ -491,7 +484,7 @@ fun CameraScreen(
                                     val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
                                     if (souvenirMode) {
-                                        // deve scattare foto ricordo
+                                        // take a souvenir photo
                                         imageCapture = ImageCapture.Builder()
                                             .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
                                             .build()
@@ -501,15 +494,15 @@ fun CameraScreen(
                                             lifecycleOwner, cameraSelector, preview, imageCapture
                                         )
                                     } else {
-                                        // deve trovare il QR code
+                                        // it has to find the qr code
 
-                                        // invocazione di ImageAnalysis per ottenere oggetto in grado
-                                        // di trovare il QR e prendere SEMPRE l'ultimo rilevato
+                                        // invokes imageanalysis in order to get the object
+                                        // capable to find the code and takes ALWAYS the last one detected
                                         val imageAnalysis = ImageAnalysis.Builder()
                                             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                                             .build()
 
-                                        // analisi "al volo" per ottenere il valore contenuto nel QR
+                                        // quick analysis for extracting info inside the qr
                                         imageAnalysis.setAnalyzer(cameraExecutor) { imageProxy ->
                                             processImage(imageProxy)
                                         }
@@ -520,9 +513,10 @@ fun CameraScreen(
                                         )
                                     }
 
-                                    // autofocus, utile per mettere a fuoco meglio il codice
+                                    // autofocus
                                     val factory = meteringPointFactory
                                     val point = factory.createPoint(width / 2f, height / 2f)
+                                    // autofocus set for 10 seconds
                                     val autoFocusAction = FocusMeteringAction.Builder(point)
                                         .setAutoCancelDuration(10, TimeUnit.SECONDS)
                                         .build()
@@ -536,7 +530,8 @@ fun CameraScreen(
                     },
                     modifier = Modifier.fillMaxSize(),
                     update = { view ->
-                        // aggiornamento della box, stessa logica di prima
+                        // preview update, same logic as before:
+                        // find the qd from camera, uses the imageanalysis for extracting code content
                         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
                         cameraProviderFuture.addListener({
                             try {
@@ -576,9 +571,8 @@ fun CameraScreen(
                     }
                 )
             }
-            
-            // se immagine luogo non presente nella risposta,
-            // mostra la camera per fare foto ricordo
+
+            // if image of place not found in response, then enable the camera!
             if (souvenirMode && permissionsGranted) {
                 AndroidView(
                     factory = { ctx ->
@@ -612,8 +606,8 @@ fun CameraScreen(
                 )
             }
 
-            // una volta scattata foto ricordo,
-            // mostrala per vedere se utente è soddisfatto
+            // once taken the souvenir photo, shows it to user
+            // and let him decide if it is ok or not
             capturedSouvenirBitmap?.let { bitmap ->
                 Image(
                     bitmap = bitmap.asImageBitmap(),
@@ -626,7 +620,6 @@ fun CameraScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // etichetta per luogo
         Text(
             text = "Info:",
             fontSize = 20.sp,
@@ -641,7 +634,7 @@ fun CameraScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
             // colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
-            // nome luogo
+            // place name
             Text(
                 text = if (showPlaceDetails) placeName else placeDetected,
                 fontSize = 24.sp,
@@ -651,7 +644,7 @@ fun CameraScreen(
                     .padding(8.dp)
             )
 
-            // informazioni sul luogo
+            // place name
             if (showPlaceDetails && placeInfo.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -672,12 +665,12 @@ fun CameraScreen(
 }
         Spacer(modifier = Modifier.weight(1f))
 
-        // bottoni vari
+        // various buttons
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth()
         ) {
-            // semplice "rotella" di caricamento
+            // "rotella" of loading
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier
@@ -686,7 +679,7 @@ fun CameraScreen(
                     color = MaterialTheme.colorScheme.secondary
                 )
             }
-            // per visitare il luogo
+            // button for visiting the place
             if (!showPlaceDetails && !souvenirMode) {
                 Button(
                     onClick = { visitPlaceById() },
@@ -696,7 +689,7 @@ fun CameraScreen(
                 }
             }
 
-            // per attivare funzionalità per foto ricordo
+            // activating souvenir photo mode
             if (showSouvenirButton && !souvenirMode) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
@@ -711,7 +704,7 @@ fun CameraScreen(
                 }
             }
 
-            // scattare foto ricordo
+            // take souvenir photo
             if (souvenirMode && !showConfirmButtons) {
                 placeDetected = "Save this moment with a photo!"
                 Button(
@@ -724,7 +717,7 @@ fun CameraScreen(
                 }
             }
 
-            // conferma o ritenta foto ricordo
+            // confir or retry photo
             if (showConfirmButtons) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),

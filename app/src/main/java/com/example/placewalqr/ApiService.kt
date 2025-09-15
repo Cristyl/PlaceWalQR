@@ -17,24 +17,24 @@ interface ApiService {
     @GET("api/getLeaderboard")
     suspend fun getLeaderboard(@Query("user_nickname") nickname: String): Response<List<LeaderboardEntry>>
 
-    // endpoint per login
+    // login endpoint
     @POST("api/login")
     suspend fun login(@Body request: LoginRequest): Response<User>
 
-    // endpoint per regitrazione
+    // registration endpoint
     @POST("api/register")
     suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
 
-    // endpoint per signin con google
+    // google signin endpoint
     @POST("api/googleAuth")
     suspend fun googleAuth(@Body userData: GoogleUserData): Response<GoogleAuthResponse>
 
-    // endpoint per visitare luogo
+    // place visit endpoint
     @POST("api/visitPlaceById")
     //suspend fun visitPlaceById(@Query("place_id") place_id: Int, @Query("user_email") user_email: String, @Query("date_of_visit") date_of_visit: String): Response<VisitPlaceResponse>
     suspend fun visitPlaceById(@Body request: VisitPlaceRequest): Response<VisitPlaceResponse>
 
-    // endpoint per salvare foto ricordo
+    // souvenir photo taken endpoint
     @POST("api/saveSouvenir")
     suspend fun saveSouvenir(@Body request: SouvenirRequest): Response<SouvenirResponse>
 

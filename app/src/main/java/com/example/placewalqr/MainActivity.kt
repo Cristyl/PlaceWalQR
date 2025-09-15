@@ -75,12 +75,12 @@ fun LoginScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    // Effettua il logout da Google se l'utente torna a questa schermata dopo un login Google
+    // logout from google, user comes back to this screen
     LaunchedEffect(Unit) {
         GoogleSignIn.getClient(context, GoogleSignInOptions.DEFAULT_SIGN_IN).signOut()
     }
 
-    // definizione client per effettuare accesso tramite login con google
+    // client definition for google login
     val googleSignInClient = remember {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
@@ -90,14 +90,15 @@ fun LoginScreen(
         GoogleSignIn.getClient(context, gso)
     }
 
-    // gestisce interazione con interfaccia per accedere con account google
+    // manages gui for google signin
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
         try {
             val account = task.getResult(ApiException::class.java)
-            // Processa il login Google
+
+            // processes the signin
             coroutineScope.launch {
                 handleGoogleSignIn(account, context, onNavigateToBase)
             }
@@ -107,17 +108,17 @@ fun LoginScreen(
         }
     }
 
-    // stati delle variabili
+    // variables for states
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var rememberMe by remember { mutableStateOf(true) }
     var isLoading by remember { mutableStateOf(false) }
 
-    // recupera valori precedentemente usati per loggare se persistenti
+    // retrieves saved values for persistent login
     LaunchedEffect(Unit) {
         val preferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
 
-        // salva i dati prima di rimuoverli dalla memoria
+        // saves data before removing it
         val editor = preferences.edit()
         val savedRememberMe = preferences.getBoolean("remember_me", true)
         val savedEmail = preferences.getString("email", "")
@@ -133,7 +134,7 @@ fun LoginScreen(
         }
     }
 
-    // funzione di login
+    // login function
     fun performLogin() {
         val editor = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE).edit()
 
@@ -150,13 +151,15 @@ fun LoginScreen(
         coroutineScope.launch {
             isLoading = true
 
+            // tries login by sending request to backend using the retrofit instance
+            // and handles response by specific data classes and api instance
             try {
                 val response = RetrofitInstance.apiService.login(loginRequest)
 
                 if (response.isSuccessful && response.body() != null) {
                     val userInfo = response.body()!!
 
-                    // recupera info dell'utente storate in precedenza
+                    // searches user info coming from previous login
                     editor.putString("id", userInfo.id.toString())
                     editor.putString("name", userInfo.name)
                     editor.putString("surname", userInfo.surname)
@@ -190,7 +193,7 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // titolo app
+        // app title
         Image(
             painter = painterResource(
                 id = if (isSystemInDarkTheme()) R.drawable.placewalqr_logo_dark_lol
@@ -202,7 +205,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // campo per email
+        // email field
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -216,7 +219,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         var showPassword by remember { mutableStateOf(false) }
-        // campo per password
+        // password field
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -254,7 +257,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // switch per rememberMe
+        // switch for rememberMe
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -280,7 +283,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // bottone di login
+        // login button
         Button(
             onClick = { performLogin() },
             modifier = Modifier.fillMaxWidth(),
@@ -302,7 +305,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // AGGIUNGI: Divisore "OR"
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -319,7 +321,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // AGGIUNGI: Bottone Google Sign-In
+        // google signin button
         androidx.compose.material3.OutlinedButton(
             onClick = {
                 val signInIntent = googleSignInClient.signInIntent
@@ -334,23 +336,9 @@ fun LoginScreen(
             )
         }
 
-        // link per password dimenticata, da rivedere
-//        TextButton(
-//            onClick = {
-//                // TODO: Implement forgot password
-//                Toast.makeText(context, "Forgot password feature coming soon", Toast.LENGTH_SHORT).show()
-//            },
-//            enabled = !isLoading
-//        ) {
-//            Text(
-//                text = "Forgot password?",
-//                textDecoration = TextDecoration.Underline
-//            )
-//        }
-
         Spacer(modifier = Modifier.height(32.dp))
 
-        // link di registrazione
+        // registration link
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -381,8 +369,9 @@ fun LoginScreen(
     }
 }
 
-// funzione asincrona per gestione accesso con google
+// async function for google signin
 suspend fun handleGoogleSignIn(account: com.google.android.gms.auth.api.signin.GoogleSignInAccount, context: Context, onNavigateToBase: () -> Unit) {
+    // tries to retrieve data obtained from google account authentication
     try {
         val userData = GoogleUserData(
             google_id = account.id ?: "",
@@ -398,7 +387,7 @@ suspend fun handleGoogleSignIn(account: com.google.android.gms.auth.api.signin.G
         if (response.isSuccessful) {
             val userInfo = response.body()!!
 
-            // salva i dati dell'utente
+            // saves user info
             val editor = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE).edit()
             editor.putString("id", userInfo.id.toString())
             editor.putString("name", userData.name)
@@ -417,7 +406,7 @@ suspend fun handleGoogleSignIn(account: com.google.android.gms.auth.api.signin.G
                     Toast.makeText(context, "Successful registration!", Toast.LENGTH_SHORT).show()
             }
 
-            // ritorna a schermata antecedente al launcher
+            // returns to base activity
             onNavigateToBase()
         } else {
             Toast.makeText(context, "Google auth failed", Toast.LENGTH_SHORT).show()
@@ -428,7 +417,6 @@ suspend fun handleGoogleSignIn(account: com.google.android.gms.auth.api.signin.G
     }
 }
 
-// classe per login
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {

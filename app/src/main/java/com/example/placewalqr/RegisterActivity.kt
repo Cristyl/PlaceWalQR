@@ -48,7 +48,7 @@ fun RegisterScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    // stati delle variabili del form
+    // states for form variables
     var name by remember { mutableStateOf("") }
     var surname by remember { mutableStateOf("") }
     var nickname by remember { mutableStateOf("") }
@@ -58,7 +58,7 @@ fun RegisterScreen(
     var confirmPassword by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
 
-    // variabili per gli errori nella validazione delle info nel form
+    // variables for error during data validation
     var nameError by remember { mutableStateOf("") }
     var surnameError by remember { mutableStateOf("") }
     var nicknameError by remember { mutableStateOf("") }
@@ -70,13 +70,14 @@ fun RegisterScreen(
     var showPassword by remember { mutableStateOf(false) }
     var showConfirmPassword by remember { mutableStateOf(false) }
 
-    // selezionatore data di nascita
+    // dob picker function
     fun showDatePicker() {
         val calendar = Calendar.getInstance()
         val currentYear = calendar.get(Calendar.YEAR)
         val currentMonth = calendar.get(Calendar.MONTH)
         val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
 
+        // defines the dialog for picking the date
         val datePickerDialog = DatePickerDialog(
             context,
             android.R.style.Theme_Holo_Light_Dialog,
@@ -86,18 +87,18 @@ fun RegisterScreen(
 
                 val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 dateOfBirth = dateFormatter.format(selectedDate.time)
-                dobError = "" // Clear error when date is selected
+                dobError = ""
             },
             currentYear,
             currentMonth,
             currentDay
         )
 
-        // imposto la data massima a partire da oggi
+        // max data from today
         val maxDate = Calendar.getInstance()
         datePickerDialog.datePicker.maxDate = maxDate.timeInMillis
 
-        // imposto la data minima a 120 anni fa
+        // max 120 years ago
         val minDate = Calendar.getInstance()
         minDate.add(Calendar.YEAR, -120)
         datePickerDialog.datePicker.minDate = minDate.timeInMillis
@@ -105,7 +106,7 @@ fun RegisterScreen(
         datePickerDialog.show()
     }
 
-    // definisco gli errori per la validazione dei campi del form
+    // validation error defined for elements of the data form
     fun validateForm(): Boolean {
         var isValid = true
 
@@ -170,7 +171,8 @@ fun RegisterScreen(
         return isValid
     }
 
-    // funzione di registrazione
+    // registration function, sends POST request to specific endpoint with
+    // info inserted by user inside the form
     fun performRegistration() {
         if (!validateForm()) return
 
@@ -206,7 +208,7 @@ fun RegisterScreen(
         }
     }
 
-    // interfaccia grafica
+    // UI
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -222,7 +224,7 @@ fun RegisterScreen(
             modifier = Modifier.width(250.dp).align(Alignment.CenterHorizontally),
             contentDescription = "App Logo"
         )
-        // titolo
+        // app title
         Text(
             text = "Create Account",
             fontSize = 28.sp,
@@ -233,7 +235,7 @@ fun RegisterScreen(
                 .padding(vertical = 24.dp)
         )
 
-        // campo per il nome
+        // name field
         OutlinedTextField(
             value = name,
             onValueChange = {
@@ -252,7 +254,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // campo per il cognome
+        // surname field
         OutlinedTextField(
             value = surname,
             onValueChange = {
@@ -271,7 +273,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // campo per il nickname
+        // nickname field
         OutlinedTextField(
             value = nickname,
             onValueChange = {
@@ -290,10 +292,10 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // campo per la data di nascita
+        // dob field
         OutlinedTextField(
             value = dateOfBirth,
-            onValueChange = { }, // SOLO IN LETTURA!
+            onValueChange = { }, // read only
             label = { Text("Date of Birth *") },
             modifier = Modifier.fillMaxWidth(),
             enabled = !isLoading,
@@ -313,7 +315,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // campo per la mail
+        // email address field
         OutlinedTextField(
             value = email,
             onValueChange = {
@@ -333,7 +335,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // campo per la password
+        // password field
         OutlinedTextField(
             value = password,
             onValueChange = {
@@ -378,7 +380,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // campo di comferma password
+        // password confirmation field
         OutlinedTextField(
             value = confirmPassword,
             onValueChange = {
@@ -423,7 +425,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // bottone di registrazione
+        // registration button
         Button(
             onClick = { performRegistration() },
             modifier = Modifier.fillMaxWidth(),
@@ -445,7 +447,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ritorno al login
+        // come back to login
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -468,7 +470,6 @@ fun RegisterScreen(
     }
 }
 
-// classe per la registrazione
 class RegisterActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
