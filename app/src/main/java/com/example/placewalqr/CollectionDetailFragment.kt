@@ -32,6 +32,7 @@ import androidx.fragment.app.Fragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+// Fragment for collection detail
 class CollectionDetailFragment : Fragment() {
 
     private var collectionId: Int = -1
@@ -39,6 +40,7 @@ class CollectionDetailFragment : Fragment() {
     companion object {
         private const val ARG_COLLECTION_ID = "collection_id"
 
+        // create new fragment with collection id
         fun newInstance(collectionId: Int): CollectionDetailFragment {
             return CollectionDetailFragment().apply {
                 arguments = Bundle().apply {
@@ -58,6 +60,7 @@ class CollectionDetailFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        // use Compose view
         return ComposeView(requireContext()).apply {
             setContent {
                 MaterialTheme {
@@ -74,6 +77,7 @@ class CollectionDetailFragment : Fragment() {
         var places by remember { mutableStateOf<List<CollectionPlace>>(emptyList()) }
         var errorMessage by remember { mutableStateOf<String?>(null) }
 
+        // load collection data
         LaunchedEffect(collectionId) {
             if (collectionId == -1) {
                 errorMessage = "Invalid collection ID"
@@ -125,7 +129,7 @@ class CollectionDetailFragment : Fragment() {
         }
 
         Column(modifier = Modifier.fillMaxSize()) {
-            // Header con back button e info collezione
+            // header with back button and info
             CollectionHeader(
                 collection = collection,
                 onBackClick = {
@@ -135,9 +139,10 @@ class CollectionDetailFragment : Fragment() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Contenuto principale
+            // main content
             when {
                 isLoading -> {
+                    // loading spinner
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -147,6 +152,7 @@ class CollectionDetailFragment : Fragment() {
                 }
 
                 errorMessage != null -> {
+                    // error message with back button
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -174,6 +180,7 @@ class CollectionDetailFragment : Fragment() {
                 }
 
                 places.isNotEmpty() -> {
+                    // list of places
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier
@@ -184,7 +191,7 @@ class CollectionDetailFragment : Fragment() {
                             CollectionPlaceCard(place)
                         }
 
-                        // Spazio extra per la navbar
+                        // extra space for bottom nav
                         item {
                             Spacer(modifier = Modifier.height(80.dp))
                         }
@@ -210,6 +217,7 @@ class CollectionDetailFragment : Fragment() {
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // back button
                 IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
@@ -220,6 +228,7 @@ class CollectionDetailFragment : Fragment() {
 
                 Spacer(modifier = Modifier.width(8.dp))
 
+                // collection name and progress
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = collection?.displayName ?: "Loading...",
@@ -252,7 +261,7 @@ class CollectionDetailFragment : Fragment() {
                     }
                 }
 
-                // Punti della collezione
+                // collection points
                 collection?.let {
                     Column(
                         horizontalAlignment = Alignment.End
@@ -272,7 +281,6 @@ class CollectionDetailFragment : Fragment() {
                 }
             }
         }
-
     }
 
     @Composable
@@ -289,6 +297,7 @@ class CollectionDetailFragment : Fragment() {
             MaterialTheme.colorScheme.onSurfaceVariant
         }
 
+        // card for each place
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = backgroundColor),
@@ -300,7 +309,7 @@ class CollectionDetailFragment : Fragment() {
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Immagine del luogo
+                // place image
                 Box(
                     modifier = Modifier
                         .size(56.dp)
@@ -332,7 +341,7 @@ class CollectionDetailFragment : Fragment() {
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // Nome del luogo
+                // place name
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = place.displayName,
@@ -345,7 +354,7 @@ class CollectionDetailFragment : Fragment() {
                     )
                 }
 
-                // Status badge
+                // visited/not visited badge
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = statusColor.copy(alpha = 0.1f)
@@ -364,6 +373,7 @@ class CollectionDetailFragment : Fragment() {
 
     @Composable
     private fun SecretPlaceImage() {
+        // lock icon for hidden places
         Icon(
             imageVector = Icons.Default.Lock,
             contentDescription = "Secret place",

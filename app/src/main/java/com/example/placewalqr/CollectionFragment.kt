@@ -39,7 +39,7 @@ import kotlinx.coroutines.withContext
 class CollectionFragment : Fragment() {
 
     companion object {
-        private var lastSelectedTab: Int = 0
+        private var lastSelectedTab: Int = 0 // remember last selected tab
     }
 
     override fun onCreateView(
@@ -65,6 +65,7 @@ class CollectionFragment : Fragment() {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
+            // logo
             Image(
                 painter = painterResource(
                     id = if (isSystemInDarkTheme()) R.drawable.placewalqr_logo_dark_lol
@@ -77,6 +78,7 @@ class CollectionFragment : Fragment() {
                 contentDescription = "App Logo"
             )
 
+            // tabs: places / collections
             TabSwitcher(
                 selectedTab = selectedTab,
                 onTabSelected = {
@@ -87,6 +89,7 @@ class CollectionFragment : Fragment() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // show tab content
             when (selectedTab) {
                 0 -> PlacesContent()
                 1 -> CollectionsContent()
@@ -132,6 +135,7 @@ class CollectionFragment : Fragment() {
                         label = "text"
                     )
 
+                    // tab button
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -161,6 +165,7 @@ class CollectionFragment : Fragment() {
         var nickname by remember { mutableStateOf("") }
         var errorMessage by remember { mutableStateOf<String?>(null) }
 
+        // load user places
         LaunchedEffect(Unit) {
             val sharedPreferences = requireActivity().getSharedPreferences(
                 "UserPrefs",
@@ -195,6 +200,7 @@ class CollectionFragment : Fragment() {
             isLoading = false
         }
 
+        // show content
         when {
             isLoading -> LoadingScreen()
             errorMessage != null -> ErrorScreen(errorMessage!!)
@@ -217,6 +223,7 @@ class CollectionFragment : Fragment() {
         var collections by remember { mutableStateOf<List<Collection>>(emptyList()) }
         var errorMessage by remember { mutableStateOf<String?>(null) }
 
+        // load user collections
         LaunchedEffect(Unit) {
             val sharedPreferences = requireActivity().getSharedPreferences(
                 "UserPrefs",
@@ -250,6 +257,7 @@ class CollectionFragment : Fragment() {
             isLoading = false
         }
 
+        // show content
         when {
             isLoading -> LoadingScreen()
             errorMessage != null -> ErrorScreen(errorMessage!!)
@@ -273,6 +281,7 @@ class CollectionFragment : Fragment() {
     private fun PlaceCard(place: Place) {
         var bitmap by remember { mutableStateOf<Bitmap?>(null) }
 
+        // decode image from base64
         LaunchedEffect(place.imageBase64) {
             bitmap = withContext(Dispatchers.IO) {
                 try {
@@ -286,6 +295,7 @@ class CollectionFragment : Fragment() {
             }
         }
 
+        // card UI
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -311,6 +321,7 @@ class CollectionFragment : Fragment() {
                         contentScale = ContentScale.Crop
                     )
                 } else {
+                    // placeholder while loading image
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -334,6 +345,7 @@ class CollectionFragment : Fragment() {
     ) {
         var bitmap by remember { mutableStateOf<Bitmap?>(null) }
 
+        // decode image
         LaunchedEffect(collection.displayImage) {
             bitmap = withContext(Dispatchers.IO) {
                 try {
@@ -353,6 +365,7 @@ class CollectionFragment : Fragment() {
             MaterialTheme.colorScheme.surface
         }
 
+        // card UI
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -366,6 +379,7 @@ class CollectionFragment : Fragment() {
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // image
                 Box(
                     modifier = Modifier
                         .size(64.dp)
@@ -387,6 +401,7 @@ class CollectionFragment : Fragment() {
 
                 Spacer(modifier = Modifier.width(16.dp))
 
+                // collection info
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = collection.displayName,
@@ -410,6 +425,7 @@ class CollectionFragment : Fragment() {
 
                 Spacer(modifier = Modifier.width(16.dp))
 
+                // points
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = "${collection.points}",
@@ -461,6 +477,7 @@ class CollectionFragment : Fragment() {
         }
     }
 
+    // open detail fragment
     private fun openCollectionDetail(collectionId: Int) {
         val detailFragment = CollectionDetailFragment.newInstance(collectionId)
         val activity = requireActivity() as BaseActivity

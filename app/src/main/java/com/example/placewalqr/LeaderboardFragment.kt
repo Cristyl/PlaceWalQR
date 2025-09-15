@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.isSystemInDarkTheme
 
+// Fragment to display the leaderboard
 class LeaderboardFragment : Fragment() {
 
     override fun onCreateView(
@@ -32,6 +33,7 @@ class LeaderboardFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        // Compose UI container
         return ComposeView(requireContext()).apply {
             setContent {
                 MaterialTheme {
@@ -43,12 +45,12 @@ class LeaderboardFragment : Fragment() {
 
     @Composable
     fun LeaderboardScreen() {
-        var isLoading by remember { mutableStateOf(true) }
-        var leaderboard by remember { mutableStateOf<List<LeaderboardEntry>>(emptyList()) }
-        var userEntry by remember { mutableStateOf<LeaderboardEntry?>(null) }
-        var errorMessage by remember { mutableStateOf<String?>(null) }
+        var isLoading by remember { mutableStateOf(true) }                      // Loading state
+        var leaderboard by remember { mutableStateOf<List<LeaderboardEntry>>(emptyList()) } // Leaderboard list
+        var userEntry by remember { mutableStateOf<LeaderboardEntry?>(null) }   // Current user entry
+        var errorMessage by remember { mutableStateOf<String?>(null) }          // Error message
 
-        // Caricamento dati (CORRETTO: senza lifecycleScope ridondante)
+        // Load leaderboard data
         LaunchedEffect(Unit) {
             val sharedPreferences = requireActivity().getSharedPreferences(
                 "UserPrefs",
@@ -70,10 +72,10 @@ class LeaderboardFragment : Fragment() {
                 if (response.isSuccessful) {
                     val fullLeaderboard = response.body() ?: emptyList()
 
-                    // Trova l'utente nella lista completa
+                    // Find current user in leaderboard
                     userEntry = fullLeaderboard.find { it.nickname == nickname }
 
-                    // Se l'utente non esiste, crea entry vuota
+                    // If user not found, create a default entry
                     if (userEntry == null) {
                         userEntry = LeaderboardEntry(
                             position = -1,
@@ -82,8 +84,7 @@ class LeaderboardFragment : Fragment() {
                         )
                     }
 
-                    // La leaderboard è già filtrata dal server (top 10 + utente se fuori top 10)
-                    leaderboard = fullLeaderboard
+                    leaderboard = fullLeaderboard // Full leaderboard
 
                 } else {
                     errorMessage = "Failed to load leaderboard: ${response.code()}"
@@ -102,6 +103,7 @@ class LeaderboardFragment : Fragment() {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
+            // App logo
             Image(
                 painter = painterResource(
                     id = if (isSystemInDarkTheme()) R.drawable.placewalqr_logo_dark_lol
@@ -111,7 +113,7 @@ class LeaderboardFragment : Fragment() {
                 contentDescription = "App Logo"
             )
 
-
+            // Title
             Text(
                 text = "Leaderboard",
                 style = MaterialTheme.typography.headlineSmall,
@@ -120,6 +122,7 @@ class LeaderboardFragment : Fragment() {
 
             when {
                 isLoading -> {
+                    // Show loading indicator
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -129,6 +132,7 @@ class LeaderboardFragment : Fragment() {
                 }
 
                 errorMessage != null -> {
+                    // Show error message
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -141,6 +145,7 @@ class LeaderboardFragment : Fragment() {
                 }
 
                 leaderboard.isEmpty() -> {
+                    // No entries
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -150,15 +155,15 @@ class LeaderboardFragment : Fragment() {
                 }
 
                 else -> {
-                    // MOSTRO SOLO la posizione utente se è FUORI dalla top 10
+                    // Show current user position if outside top 10
                     userEntry?.let { user ->
                         if (user.position > 10) {
-                            UserPositionCard(user)
+                            UserPositionCard(user) // Current user card
                             Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
 
-                    // Lista classifica (include già l'utente se nella top 10)
+                    // Leaderboard list
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -166,8 +171,8 @@ class LeaderboardFragment : Fragment() {
                         items(leaderboard) { entry ->
                             val isCurrentUser = entry.nickname == userEntry?.nickname
                             LeaderboardCard(
-                                entry = entry,
-                                isCurrentUser = isCurrentUser
+                                entry = entry,       // Leaderboard entry
+                                isCurrentUser = isCurrentUser // Highlight if current user
                             )
                         }
                     }
@@ -178,6 +183,7 @@ class LeaderboardFragment : Fragment() {
 
     @Composable
     fun UserPositionCard(entry: LeaderboardEntry) {
+        // Card for current user position outside top 10
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer
@@ -208,6 +214,7 @@ class LeaderboardFragment : Fragment() {
 
     @Composable
     fun LeaderboardCard(entry: LeaderboardEntry, isCurrentUser: Boolean = false) {
+        // Card for leaderboard entry
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = if (isCurrentUser) {
@@ -223,15 +230,15 @@ class LeaderboardFragment : Fragment() {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Posizione
+                // Rank
                 Text(
                     text = "#${entry.position}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = when (entry.position) {
-                        1 -> Color(0xFFFFD700) // Oro
-                        2 -> Color(0xFFC0C0C0) // Argento
-                        3 -> Color(0xFFCD7F32) // Bronzo
+                        1 -> Color(0xFFFFD700) // Gold
+                        2 -> Color(0xFFC0C0C0) // Silver
+                        3 -> Color(0xFFCD7F32) // Bronze
                         else -> MaterialTheme.colorScheme.onSurface
                     }
                 )
@@ -243,7 +250,7 @@ class LeaderboardFragment : Fragment() {
                     fontWeight = if (isCurrentUser) FontWeight.Bold else FontWeight.Normal
                 )
 
-                // Punti
+                // Points
                 Text(
                     text = "${entry.total_points} pts",
                     style = MaterialTheme.typography.titleMedium,

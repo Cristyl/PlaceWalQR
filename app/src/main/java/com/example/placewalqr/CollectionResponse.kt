@@ -1,7 +1,7 @@
 package com.example.placewalqr
 
-// Response dal server per collezioni utente
+// Server response for a user collection
 data class CollectionResponse(
-    val collection: com.example.placewalqr.Collection,
-    val userProgress: UserCollectionProgress
+    val collection: com.example.placewalqr.Collection, // Collection info
+    val userProgress: UserCollectionProgress          // User progress for this collection
 )

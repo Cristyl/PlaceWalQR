@@ -25,16 +25,17 @@ import com.example.placewalqr.ui.theme.PlaceWalQRTheme
 
 class BaseActivity : AppCompatActivity() {
 
+    // Track selected tab
     private var currentSelectedTab by mutableIntStateOf(0)
     private var lastSelectedTab by mutableIntStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Usa setContent per UI Compose
+        // Use Jetpack Compose for UI
         setContent {
             PlaceWalQRTheme {
-                // Applica il colore di sfondo del tema a tutta la superficie dell'app
+                // Main background color
                 Surface(color = MaterialTheme.colorScheme.background) {
                     val statusBarColor = MaterialTheme.colorScheme.primary
                     SideEffect {
@@ -46,16 +47,16 @@ class BaseActivity : AppCompatActivity() {
             }
         }
 
-        // Mostra la homepage di default
+        // Show homepage on first launch
         if (savedInstanceState == null) {
             lastSelectedTab = 0
-            // IMPORTANTE: Aspetta che la UI sia pronta
             post {
                 navigateToFragment(HomepageFragment())
             }
         }
     }
 
+    // Helper to post actions after UI is ready
     private fun post(action: () -> Unit) {
         window.decorView.post(action)
     }
@@ -63,30 +64,28 @@ class BaseActivity : AppCompatActivity() {
     @Composable
     private fun MainScreen() {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Container per i fragment usando AndroidView
+            // Container for fragments
             AndroidView(
                 factory = { context ->
                     FragmentContainerView(context).apply {
-                        id = View.generateViewId() // Aggiunto View.
+                        id = View.generateViewId()
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f) // Occupa tutto lo spazio tranne la navbar
+                    .weight(1f) // Takes all space except bottom navigation
             ) { view ->
-                // Salva l'ID generato per usarlo nei fragment
                 savedFragmentContainerId = view.id
             }
 
-            // Bottom Navigation personalizzata
+            // Custom bottom navigation bar
             CustomBottomNavigation()
         }
     }
 
-    // Variabile per salvare l'ID del container
+    // Save fragment container ID
     private var savedFragmentContainerId: Int = 0
 
-    // Metodo per esporre l'ID del container ai fragment
     fun getFragmentContainerId(): Int = savedFragmentContainerId
 
     @Composable
@@ -105,7 +104,7 @@ class BaseActivity : AppCompatActivity() {
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Home Tab
+                // Button for Home
                 NavigationTab(
                     icon = Icons.Default.Home,
                     label = "Home",
@@ -117,7 +116,7 @@ class BaseActivity : AppCompatActivity() {
                     }
                 )
 
-                // Map Tab
+                // Button for Map
                 NavigationTab(
                     icon = Icons.Default.LocationOn,
                     label = "Map",
@@ -129,10 +128,10 @@ class BaseActivity : AppCompatActivity() {
                     }
                 )
 
-                // Camera Button (Centrale)
+                // Center floating button for Camera
                 FloatingActionButton(
                     onClick = {
-                        currentSelectedTab = -1 // Deseleziona tutti
+                        currentSelectedTab = -1
                         navigateToFragment(CameraComposeFragment())
                     },
                     modifier = Modifier.size(56.dp),
@@ -140,14 +139,14 @@ class BaseActivity : AppCompatActivity() {
                     containerColor = MaterialTheme.colorScheme.primary
                 ) {
                     Icon(
-                        imageVector = Icons.Default.PhotoCamera, // Cambiato da CameraAlt
+                        imageVector = Icons.Default.PhotoCamera,
                         contentDescription = "Camera",
                         tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )
                 }
 
-                // Collection Tab (era Achievements)
+                // Button for Collection
                 NavigationTab(
                     icon = Icons.Default.CollectionsBookmark,
                     label = "Collection",
@@ -159,7 +158,7 @@ class BaseActivity : AppCompatActivity() {
                     }
                 )
 
-                // Leaderboard Tab
+                // Button for Leaderboard
                 NavigationTab(
                     icon = Icons.Default.Leaderboard,
                     label = "Leaderboard",
@@ -174,8 +173,9 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
+    // Reusable navigation tab
     @Composable
-    private fun RowScope.NavigationTab( // Aggiunto RowScope
+    private fun RowScope.NavigationTab(
         icon: ImageVector,
         label: String,
         isSelected: Boolean,
@@ -183,7 +183,7 @@ class BaseActivity : AppCompatActivity() {
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.weight(1f) // Ora funziona!
+            modifier = Modifier.weight(1f)
         ) {
             IconButton(onClick = onClick) {
                 Icon(
@@ -207,8 +207,8 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
+    // Replace current fragment with a new one
     private fun navigateToFragment(fragment: Fragment) {
-        // Usa l'ID generato dinamicamente
         if (savedFragmentContainerId != 0) {
             supportFragmentManager.beginTransaction()
                 .replace(savedFragmentContainerId, fragment)
@@ -217,7 +217,7 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
-    // Metodo pubblico per navigazione da altri fragment
+    // Public navigation for other fragments
     fun navigateToDetailFragment(fragment: Fragment) {
         navigateToFragment(fragment)
     }
@@ -225,34 +225,32 @@ class BaseActivity : AppCompatActivity() {
     override fun onBackPressed() {
         val currentFragment = supportFragmentManager.findFragmentById(savedFragmentContainerId)
 
-        // Se siamo già sulla homepage, chiudi l'app
+        // If on homepage and no back stack, exit app
         if (currentFragment is HomepageFragment && supportFragmentManager.backStackEntryCount <= 1) {
-            finish() // Chiude l'applicazione
+            finish()
             return
         }
 
-        // Controlla se c'è qualcosa nella back stack
+        // If there are fragments in the stack, go back
         if (supportFragmentManager.backStackEntryCount > 1) {
-            // C'è ancora qualcosa nella stack, procedi normalmente
             super.onBackPressed()
             currentSelectedTab = lastSelectedTab
         } else {
-            // La stack è quasi vuota, vai alla homepage
+            // Otherwise go back to homepage
             currentSelectedTab = 0
             lastSelectedTab = 0
             navigateToHomepage()
         }
     }
 
+    // Go to homepage and clear back stack
     private fun navigateToHomepage() {
-        // Pulisce la back stack e va alla homepage
         supportFragmentManager.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
 
-        // Naviga alla homepage senza aggiungere alla back stack
         if (savedFragmentContainerId != 0) {
             supportFragmentManager.beginTransaction()
                 .replace(savedFragmentContainerId, HomepageFragment())
-                .commit() // Senza addToBackStack!
+                .commit()
         }
     }
 }

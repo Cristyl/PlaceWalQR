@@ -1,29 +1,28 @@
-// Data classes per le collections
+// Data classes for collections
 package com.example.placewalqr
 
 data class Collection(
     val id: Int,
     val name: String,
-    val image: String?, // Base64 o URL
-    val isUnknown: Boolean, // is_unknown dal DB
+    val image: String?, // image (Base64 or URL)
+    val isUnknown: Boolean, // hidden collection
     val points: Int,
-    val totalPlaces: Int = 0, // Calcolato
-    val visitedPlaces: Int = 0 // Calcolato
+    val totalPlaces: Int = 0, // total places
+    val visitedPlaces: Int = 0 // visited places
 ) {
-    // Nome da mostrare (??? se segreto e non completato)
+    // name to show (??? if hidden and not completed)
     val displayName: String
         get() = if (isUnknown && visitedPlaces < totalPlaces) "???" else name
 
-    // Immagine da mostrare (default se segreto e non completato)
+    // image to show (null if hidden and not completed)
     val displayImage: String?
         get() = if (isUnknown && visitedPlaces < totalPlaces) null else image
 
-    // Se la collezione è completata
+    // check if completed
     val isCompleted: Boolean
         get() = visitedPlaces >= totalPlaces
 
-    // Progress come stringa "5/7"
+    // progress as "x/y"
     val progressText: String
         get() = "$visitedPlaces/$totalPlaces"
 }
-
