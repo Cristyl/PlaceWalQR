@@ -157,7 +157,7 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
                     )
                 }
 
-                // Map
+                // Maps from google
                 AndroidView(
                     factory = { context ->
                         MapView(context).apply {
@@ -172,6 +172,7 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
                 }
             }
 
+            // Info view for a point on the maps
             if (isInfoWindowVisible && selectedPlace != null) {
                 Box(
                     modifier = Modifier
@@ -191,6 +192,7 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
         }
     }
 
+    // Element for the info view
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun CustomInfoWindow(
@@ -208,7 +210,7 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
             Column(
                 modifier = Modifier.padding(12.dp)
             ) {
-                // Image
+                // Image of the place
                 val imageBytes = place.getImageBytes()
                 if (imageBytes != null && imageBytes.isNotEmpty()) {
                     val bitmap = loadBitmap(imageBytes)
@@ -244,7 +246,7 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Title
+                // Title of the place
                 Text(
                     text = place.name,
                     fontWeight = FontWeight.Bold,
@@ -255,6 +257,8 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
+
+                // Information about the place
                 Text(
                     text = place.information,
                     fontSize = 14.sp,
@@ -271,7 +275,7 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Status
+                    // Status (visited or not)
                     Text(
                         text = if (place.visited) "Visited" else "Not visited yet",
                         fontSize = 12.sp,
@@ -287,6 +291,7 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
                             )
                             .padding(4.dp)
                     )
+                    //Coordinates
                     Text(
                         text = "${place.latitude}, ${place.longitude}",
                         fontSize = 11.sp,
@@ -439,6 +444,7 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
         )
     }
 
+    // Add user position on the map
     private fun updateLocationOnMap(location: Location) {
         val currentLatLng = LatLng(location.latitude, location.longitude)
         val latFormatted = "%.6f".format(location.latitude)
@@ -477,6 +483,7 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
+    // Load place markers from the database
     private fun loadPlaceMarkers() {
         Log.d("Markers", "Starting to load place markers")
 
@@ -507,6 +514,7 @@ class MapsFragment : Fragment(R.layout.activity_maps), OnMapReadyCallback {
         }
     }
 
+    // Add place markers on the map
     private fun addPlaceMarker(place: VisitedPlaceResponse) {
         val placeLatLng = LatLng(place.latitude, place.longitude)
         Log.d("PlaceMarker", "Adding place marker at: ${place.latitude}, ${place.longitude}")

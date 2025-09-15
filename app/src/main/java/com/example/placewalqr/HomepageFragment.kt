@@ -84,6 +84,7 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
         loadUserData()
     }
 
+    //load user data from shared preferences
     private fun loadUserData() {
         val sharedPreferences = requireContext().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         user = sharedPreferences.getString("nickname", "").toString()
@@ -92,6 +93,7 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
     }
 
 
+    //load data from database
     private suspend fun loadHomePageData(
         onDataLoaded: (points: Int, sights: Int, lastPlace: String, image: Bitmap?, place_points:Int) -> Unit
     ) {
@@ -166,9 +168,10 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
                 contentDescription = "App Logo"
             )
 
-            // Header con benvenuto
+            // Welcome header
             WelcomeHeader(user = if (::user.isInitialized) user else "")
 
+            // Wait for data loading
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.padding(32.dp)
@@ -208,6 +211,7 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
         }
     }
 
+    // UI for no place visited
     @Composable
     private fun NoVisitedPlacesSection() {
         Card(
@@ -249,6 +253,7 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
         }
     }
 
+    // UI for last place visited
     @Composable
     private fun LastPlaceSection(placeName: String, placeImage: Bitmap?, placePoints:Int) {
         Card(
@@ -311,6 +316,7 @@ class HomepageFragment : Fragment(R.layout.homepage_activity){
         }
     }
 
+    // UI for points scored
     @Composable
     fun StatsSection(points: Int, sights: Int) {
         Row(

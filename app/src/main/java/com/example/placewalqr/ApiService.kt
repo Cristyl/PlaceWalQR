@@ -9,7 +9,7 @@ import retrofit2.http.Query
 
 interface ApiService {
 
-    // endopoint per caricare i posti visitati
+    // endopoint for the places visited by a user
     @GET("api/getPlacesByUser")
     suspend fun getPlacesByUser(@Query("user_id") id: String): Response<List<Place>>
 
@@ -31,35 +31,29 @@ interface ApiService {
 
     // place visit endpoint
     @POST("api/visitPlaceById")
-    //suspend fun visitPlaceById(@Query("place_id") place_id: Int, @Query("user_email") user_email: String, @Query("date_of_visit") date_of_visit: String): Response<VisitPlaceResponse>
     suspend fun visitPlaceById(@Body request: VisitPlaceRequest): Response<VisitPlaceResponse>
 
     // souvenir photo taken endpoint
     @POST("api/saveSouvenir")
     suspend fun saveSouvenir(@Body request: SouvenirRequest): Response<SouvenirResponse>
 
-    @GET("api/findUserByEmail")
-    suspend fun findUserByEmail()
-
+    // endpoint for points of a user
     @GET("api/getPointsById/{id}")
     suspend fun getPointsById(@Path("id") user_id: Int): Response<PointsByIdResponse>
 
-    @GET("api/findAllPlaces")
-    suspend fun findAllPlaces(): Response<List<Place>>
-
-    @GET("api/findAllPlacesByUser")
-    suspend fun findAllPlacesByUser()
-
+    // endpoint for finding last place visited by a user
     @GET("api/findLastPlaceById/{id}")
     suspend fun findLastPlaceById(@Path("id") user_id: Int): Response<LastPlaceResponse>
 
+    // endopoint for the places visited by a user
     @GET("api/findVisitedPlaceById/{id}")
     suspend fun findVisitedPlaceById(@Path("id") user_id: Int): Response<List<VisitedPlaceResponse>>
 
-    // Aggiungi questi metodi alla tua interfaccia ApiService
+    // endpoint for finding collections of a user
     @GET("api/collections/{userId}")
     suspend fun getUserCollections(@Path("userId") userId: String): Response<List<Collection>>
 
+    // endpoint for getting places of a specific collection
     @GET("api/collection/{collectionId}/places/{userId}")
     suspend fun getCollectionPlaces(
         @Path("collectionId") collectionId: Int,
