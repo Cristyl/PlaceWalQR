@@ -1,26 +1,31 @@
 # PlaceWalQR
 
-## App
-### Login
-### Home
-#### Display dati utente (personali e legati all'applicazione)
-### Fotocamera
-#### Scannerizza QR code e salva i dati
-### Posizione
-#### Mostra i luoghi visitabili (e quindi scannerizzabili) nelle vicinanze
-### Archievement
-#### Mostra quali luoghi sono stati visitati
+## Students:
+- Cristian Andrei Mai Mihai, maimihai.1942925@studenti.uniroma1.it
+- Michele Nicoletti, nicoletti.1886646@studenti.uniroma1.it
+- Lorenzo Pecorari, pecorari.1885161@studenti.uniroma1.it
 
-## Luoghi
-### Ad ogni luogo è associato un QR code; quando questo viene scannerizzato viene attribuito l'archivement nella paggina Archievement e vengono mostrate informazioni riguardo il luogo stesso
+## Description of the app
+The following application invites users to visit places around the Italy and many other nations.
 
-## Interazione fotocamera
-### Saper leggere il QR da diverse posizioni
+Using the position provided by the GPS sensor inside the Android smartphone, that runs the app, it is possible to check the map provided by Google for exploring the next destination.
 
-## Interazione GPS
-### Mostra la posizione attuale e eventuali luoghi nelle vicinanze; consente la verifica di autenticità della scannerizzazione. una scansione è valida se fatta in prossimità delle coordiante del codice QR
+Once found a QR code in the place, the user can scan it through the dedicated fragment and, thanks to MLKit, the application can recognize the information behind the code captured by the camera.
 
-## Tecnologie
-### Kotlin per la parte mobile
-### Python (python anywhere) per la parte cloud
-### SQL-lite/MySQL per Data Base
+Users can compete with others through the leaderboard: each place visited allows to cumulate a certain quantity of points.
+
+All the places visited can be seen inside the dedicated fragment, showing collection and additional points when completed.
+
+The login can be done according to the Google signin or with the customized registration provided as a service.
+
+## Sensors
+- GPS
+- Camera
+- "Haptic engine", vibration motor
+
+## External API
+- Google Maps
+- Google Authentication
+
+## Custom API
+- Pythonanywhere with endpoints in Flask
