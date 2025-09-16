@@ -510,9 +510,9 @@ def visitPlaceById():
             conn.close()
             return jsonify({"status": "ko - No matching place"}), 404
 
-        # # checking correctness of position for user <- DA RIATTIVARE!
-        # if((abs(place["longitude"] - long) >= POSITION_THRESHOLD) or (abs(place["latitude"] - lat) >= POSITION_THRESHOLD)):
-        #     return jsonify({"status": "ko - Wrong position"}), 406
+        # checking correctness of position for user
+        if((abs(place["longitude"] - long) >= POSITION_THRESHOLD) or (abs(place["latitude"] - lat) >= POSITION_THRESHOLD)):
+            return jsonify({"status": "ko - Wrong position"}), 406
 
         place_name = place["name"]
         place_information = place["information"]
