@@ -340,19 +340,25 @@ fun CameraScreen(
                         showPlaceDetails = true
                         // showCamera = false
 
-                    } else {
-                        when(response.code()){
-                            400 -> Toast.makeText(context, "Incorrect request", Toast.LENGTH_SHORT).show()
-                            404 -> Toast.makeText(context, "Not found", Toast.LENGTH_SHORT).show()
-                            406 -> {
-                                placeName = "Too far from the place, check your position!"
-                                placeImage = BitmapFactory.decodeResource(context.getResources(),
-                                    R.drawable.null_place_image);
-                            }
-                        }
                     }
                 } else {
-                    Toast.makeText(context, "Bad request", Toast.LENGTH_SHORT).show()
+                    val errorMessage = when(response.code()){
+                        400 -> "Incorrect request"
+                        404 -> "Not found"
+                        406 -> {
+                            placeName = "Too far from the place, check your position!"
+                            placeImage = BitmapFactory.decodeResource(context.resources, R.drawable.null_place_image)
+                            showPlaceDetails = true
+                            "Too far from the place, check your position!"
+                        }
+                        else -> "Bad request: ${response.code()}"
+                    }
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                    if (response.code() != 406) {
+                        placeName = "Error"
+                        placeImage = BitmapFactory.decodeResource(context.resources,
+                            R.drawable.null_place_image);
+                    }
                 }
             } catch (e: IOException) {
                 Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show()

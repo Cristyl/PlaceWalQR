@@ -489,7 +489,7 @@ def visitPlaceById():
     long = data.get("user_long")
 
     # scostamento di max +-50m
-    POSITION_THRESHOLD = 0.45089
+    POSITION_THRESHOLD = 0.00045
 
     if not user_email or not place_id or not date:
         return jsonify({"status": "ko", "error": "Malformed request", "user_id": user_email, "place_id": place_id, "date": date}), 400
